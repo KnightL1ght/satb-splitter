@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+from collections import deque
 import io
+import math
 from pathlib import Path
 from typing import Sequence
 
@@ -202,6 +204,330 @@ def estimate_skew_angle(gray: np.ndarray, *, max_angle: float = 8.0) -> tuple[fl
     return float(best_angle), float(best_var / max(zero_var, 1e-9))
 
 
+def _solve_perspective_coeffs(
+    dst_pts: Sequence[tuple[float, float]],
+    src_pts: Sequence[tuple[float, float]],
+) -> tuple[float, ...]:
+    """Solve 8-parameter PIL ``PERSPECTIVE`` coefficients mapping ``dst -> src``."""
+    if len(dst_pts) != 4 or len(src_pts) != 4:
+        raise ValueError("Expected 4 destination and 4 source points.")
+    rows: list[list[float]] = []
+    rhs: list[float] = []
+    for (x, y), (u, v) in zip(dst_pts, src_pts):
+        rows.append([x, y, 1.0, 0.0, 0.0, 0.0, -u * x, -u * y])
+        rhs.append(u)
+        rows.append([0.0, 0.0, 0.0, x, y, 1.0, -v * x, -v * y])
+        rhs.append(v)
+    a_mat = np.asarray(rows, dtype=np.float64)
+    b_vec = np.asarray(rhs, dtype=np.float64)
+    coeffs = np.linalg.solve(a_mat, b_vec)
+    return tuple(float(c) for c in coeffs)
+
+
+def _find_thick_border_mask(
+    gray_arr: np.ndarray,
+    *,
+    dark_thresh: int = 232,
+) -> tuple[np.ndarray, int]:
+    """Return ``(edge_connected_dark_mask, cell)`` via block-max pooling + 4-edge BFS."""
+    arr = np.asarray(gray_arr, dtype=np.uint8)
+    h, w = arr.shape
+    cell = max(4, min(h, w) // 360)
+    grid_h, grid_w = h // cell, w // cell
+    if grid_h < 4 or grid_w < 4:
+        return np.zeros((max(grid_h, 1), max(grid_w, 1)), dtype=bool), cell
+
+    block_max = (
+        arr[: grid_h * cell, : grid_w * cell]
+        .reshape(grid_h, cell, grid_w, cell)
+        .max(axis=(1, 3))
+    )
+    dark = block_max < dark_thresh
+    mask = np.zeros((grid_h, grid_w), dtype=bool)
+    queue: deque[tuple[int, int]] = deque()
+
+    for r in range(grid_h):
+        for c in (0, grid_w - 1):
+            if dark[r, c] and not mask[r, c]:
+                mask[r, c] = True
+                queue.append((r, c))
+    for c in range(grid_w):
+        for r in (0, grid_h - 1):
+            if dark[r, c] and not mask[r, c]:
+                mask[r, c] = True
+                queue.append((r, c))
+
+    while queue:
+        r, c = queue.popleft()
+        for dr, dc in ((-1, 0), (1, 0), (0, -1), (0, 1)):
+            nr, nc = r + dr, c + dc
+            if 0 <= nr < grid_h and 0 <= nc < grid_w and dark[nr, nc] and not mask[nr, nc]:
+                mask[nr, nc] = True
+                queue.append((nr, nc))
+
+    return mask, cell
+
+
+def _fit_trimmed_line(
+    pts: Sequence[tuple[float, float]],
+    *,
+    span_total: int,
+    other_dim: int,
+    min_cov: float,
+    min_span: float,
+    min_inliers: float,
+) -> tuple[float, float] | None:
+    """Two-pass trimmed OLS fit ``dep = a * indep + b`` on grid coordinates."""
+    if len(pts) < max(6, int(math.ceil(min_cov * span_total))):
+        return None
+    indep = np.asarray([p[0] for p in pts], dtype=np.float64)
+    dep = np.asarray([p[1] for p in pts], dtype=np.float64)
+    if float(indep.max() - indep.min()) / float(max(span_total, 1)) < min_span:
+        return None
+
+    slope, intercept = np.polyfit(indep, dep, 1)
+    tol = max(2.0, 0.01 * float(other_dim))
+    inliers = np.abs(dep - (slope * indep + intercept)) <= tol
+    if int(inliers.sum()) < max(6, int(math.ceil(min_inliers * span_total))):
+        return None
+
+    indep_in = indep[inliers]
+    dep_in = dep[inliers]
+    slope, intercept = np.polyfit(indep_in, dep_in, 1)
+    mad = float(np.median(np.abs(dep_in - (slope * indep_in + intercept))))
+    if mad >= 0.012 * float(other_dim):
+        return None
+    return float(slope), float(intercept)
+
+
+def _intersect_hv_lines(
+    a_lr: float,
+    b_lr: float,
+    a_tb: float,
+    b_tb: float,
+) -> tuple[float, float]:
+    """Intersect ``x = a_lr * y + b_lr`` and ``y = a_tb * x + b_tb``."""
+    denom = 1.0 - a_lr * a_tb
+    if abs(denom) < 1e-6:
+        y = b_tb
+        return a_lr * y + b_lr, y
+    x = (a_lr * b_tb + b_lr) / denom
+    y = a_tb * x + b_tb
+    return x, y
+
+
+def dewarp_paper_perspective(gray: Image.Image) -> tuple[Image.Image, str | None]:
+    """Rectify trapezoidal camera perspective when dark outer margins bound the sheet."""
+    arr = np.asarray(gray, dtype=np.uint8)
+    h, w = arr.shape
+    if h < 64 or w < 64:
+        return gray, None
+
+    mask, cell = _find_thick_border_mask(arr)
+    if not np.any(mask):
+        return gray, None
+
+    grid_h, grid_w = mask.shape
+    left_lim = int(0.22 * grid_w)
+    right_lim = int(0.78 * grid_w)
+    row_mask_frac = mask.mean(axis=1)
+
+    l_pts: list[tuple[float, float]] = []
+    r_pts: list[tuple[float, float]] = []
+    for r in range(grid_h):
+        if row_mask_frac[r] > 0.40:
+            continue
+        lm = np.where(mask[r, :left_lim])[0]
+        if len(lm):
+            x_l = int(lm.max()) + 1
+            if 0 < x_l < left_lim and not mask[r, x_l]:
+                l_pts.append((float(r), float(x_l)))
+        rm = np.where(mask[r, right_lim:])[0]
+        if len(rm):
+            first_dark = int(rm.min()) + right_lim
+            if right_lim < first_dark < grid_w and not mask[r, first_dark - 1]:
+                r_pts.append((float(r), float(first_dark)))
+
+    fit_l = _fit_trimmed_line(
+        l_pts,
+        span_total=grid_h,
+        other_dim=grid_w,
+        min_cov=0.25,
+        min_span=0.40,
+        min_inliers=0.20,
+    )
+    fit_r = _fit_trimmed_line(
+        r_pts,
+        span_total=grid_h,
+        other_dim=grid_w,
+        min_cov=0.25,
+        min_span=0.40,
+        min_inliers=0.20,
+    )
+    if fit_l is None or fit_r is None:
+        return gray, None
+
+    a_l, b_l = fit_l
+    a_r, b_r = fit_r
+
+    # Optional top/bottom boundary fits when clearly bordered
+    top_lim = int(0.15 * grid_h)
+    bot_lim = int(0.85 * grid_h)
+    col_mask_frac = mask.mean(axis=0)
+    t_pts: list[tuple[float, float]] = []
+    b_pts: list[tuple[float, float]] = []
+    for c in range(grid_w):
+        if col_mask_frac[c] > 0.40:
+            continue
+        tm = np.where(mask[:top_lim, c])[0]
+        if len(tm):
+            y_t = int(tm.max()) + 1
+            if 0 < y_t < top_lim and not mask[y_t, c]:
+                t_pts.append((float(c), float(y_t)))
+        bm_c = np.where(mask[bot_lim:, c])[0]
+        if len(bm_c):
+            first_dark_y = int(bm_c.min()) + bot_lim
+            if bot_lim < first_dark_y < grid_h and not mask[first_dark_y - 1, c]:
+                b_pts.append((float(c), float(first_dark_y)))
+
+    fit_t = _fit_trimmed_line(
+        t_pts,
+        span_total=grid_w,
+        other_dim=grid_h,
+        min_cov=0.30,
+        min_span=0.45,
+        min_inliers=0.25,
+    )
+    fit_b = _fit_trimmed_line(
+        b_pts,
+        span_total=grid_w,
+        other_dim=grid_h,
+        min_cov=0.30,
+        min_span=0.45,
+        min_inliers=0.25,
+    )
+
+    a_t, b_t_full = (fit_t[0], fit_t[1] * cell) if fit_t is not None else (0.0, 0.0)
+    a_b, b_b_full = (fit_b[0], fit_b[1] * cell) if fit_b is not None else (0.0, float(h - 1))
+
+    b_l_full = b_l * cell
+    b_r_full = b_r * cell
+    tl_x, tl_y = _intersect_hv_lines(a_l, b_l_full, a_t, b_t_full)
+    tr_x, tr_y = _intersect_hv_lines(a_r, b_r_full, a_t, b_t_full)
+    br_x, br_y = _intersect_hv_lines(a_r, b_r_full, a_b, b_b_full)
+    bl_x, bl_y = _intersect_hv_lines(a_l, b_l_full, a_b, b_b_full)
+
+    # Inset slightly (~3 px horizontally) and clamp to image bounds
+    inset = 3.0
+    def _clamp_pt(px: float, py: float) -> tuple[float, float]:
+        return (
+            float(min(max(px, 0.0), float(w - 1))),
+            float(min(max(py, 0.0), float(h - 1))),
+        )
+
+    tl = _clamp_pt(tl_x + inset, tl_y)
+    tr = _clamp_pt(tr_x - inset, tr_y)
+    br = _clamp_pt(br_x - inset, br_y)
+    bl = _clamp_pt(bl_x + inset, bl_y)
+
+    w_top = tr[0] - tl[0]
+    w_bot = br[0] - bl[0]
+    if w_top <= 16.0 or w_bot <= 16.0:
+        return gray, None
+
+    taper = abs(w_bot - w_top) / max(w_top, w_bot, 1.0)
+    opposing_slopes = a_l * a_r < 0.0 and abs(a_r - a_l) >= 0.025
+    if taper < 0.025 and not opposing_slopes:
+        return gray, None
+
+    if min(w_top, w_bot) < 0.55 * float(w):
+        return gray, None
+
+    quad = (tl, tr, br, bl)
+    xs_q = [p[0] for p in quad]
+    ys_q = [p[1] for p in quad]
+    area = 0.5 * abs(
+        sum(xs_q[i] * ys_q[(i + 1) % 4] - xs_q[(i + 1) % 4] * ys_q[i] for i in range(4))
+    )
+    if area < 0.55 * float(w * h):
+        return gray, None
+
+    quad_height = max(
+        math.hypot(bl[0] - tl[0], bl[1] - tl[1]),
+        math.hypot(br[0] - tr[0], br[1] - tr[1]),
+    )
+    out_w = max(16, int(round(max(w_top, w_bot))))
+    out_h = max(16, int(round(quad_height)))
+
+    dst_pts = [
+        (0.0, 0.0),
+        (float(out_w - 1), 0.0),
+        (float(out_w - 1), float(out_h - 1)),
+        (0.0, float(out_h - 1)),
+    ]
+    try:
+        coeffs = _solve_perspective_coeffs(dst_pts, quad)
+    except np.linalg.LinAlgError:
+        return gray, None
+
+    warped = gray.transform(
+        (out_w, out_h),
+        Image.Transform.PERSPECTIVE,
+        coeffs,
+        resample=Image.Resampling.BICUBIC,
+        fillcolor=255,
+    )
+    padded = ImageOps.expand(warped, border=24, fill=255)
+    return padded, f"Perspective-rectified paper quad (taper {taper * 100:.1f}%)"
+
+
+def whiten_dark_borders(gray: Image.Image) -> tuple[Image.Image, str | None]:
+    """Whiten solid dark table/shadow margins connected to the image perimeter."""
+    arr = np.asarray(gray, dtype=np.uint8)
+    h, w = arr.shape
+    if h < 16 or w < 16:
+        return gray, None
+
+    mask, cell = _find_thick_border_mask(arr)
+    area_frac = float(mask.mean())
+    if area_frac < 0.002 or area_frac > 0.25:
+        return gray, None
+
+    # Dilate by 2 cells using 5x5 slice shifts (zero external dependencies)
+    grid_h, grid_w = mask.shape
+    padded_m = np.pad(mask, 2, mode="constant", constant_values=False)
+    dilated = np.zeros_like(mask, dtype=bool)
+    for dr in range(5):
+        for dc in range(5):
+            dilated |= padded_m[dr : dr + grid_h, dc : dc + grid_w]
+
+    up = np.repeat(np.repeat(dilated, cell, axis=0), cell, axis=1)
+    pad_h = max(0, h - up.shape[0])
+    pad_w = max(0, w - up.shape[1])
+    if pad_h > 0 or pad_w > 0:
+        up = np.pad(up, ((0, pad_h), (0, pad_w)), mode="edge")
+    up = up[:h, :w]
+
+    my = max(1, int(round(0.14 * h)))
+    mx = max(1, int(round(0.14 * w)))
+    in_margin = np.zeros((h, w), dtype=bool)
+    in_margin[:my, :] = True
+    in_margin[-my:, :] = True
+    in_margin[:, :mx] = True
+    in_margin[:, -mx:] = True
+
+    full_mask = up & in_margin
+    if not np.any(full_mask & (arr < 255)):
+        return gray, None
+
+    cleaned = arr.copy()
+    cleaned[full_mask] = 255
+    return (
+        Image.fromarray(cleaned, mode="L"),
+        f"Whitened dark outer borders ({area_frac * 100:.1f}% of area)",
+    )
+
+
 def preprocess_image_for_omr(
     img: Image.Image,
     *,
@@ -231,13 +557,26 @@ def preprocess_image_for_omr(
     # Step B: composite alpha onto white and convert to grayscale
     rgb_or_l, gray = _flatten_alpha_to_white(img)
 
+    # Step B2: perspective paper rectification & safe outer dark border removal
+    border_cleaned = False
+    if deskew:
+        gray, persp_note = dewarp_paper_perspective(gray)
+        if persp_note:
+            notes.append(persp_note)
+            border_cleaned = True
+    if mode != "off" or deskew:
+        gray, border_note = whiten_dark_borders(gray)
+        if border_note:
+            notes.append(border_note)
+            border_cleaned = True
+
     # Step C: uneven shadow flattening + smooth anti-aliased contrast stretch
     do_enhance = False
     if mode == "on":
         do_enhance = True
         notes.append("Photo enhance forced: shadow flatten + anti-aliased contrast stretch")
     elif mode == "auto":
-        is_photo, reason = is_camera_photo(rgb_or_l)
+        is_photo, reason = is_camera_photo(gray if border_cleaned else rgb_or_l)
         if is_photo:
             do_enhance = True
             notes.append(f"Camera photo detected ({reason}): shadow flatten + contrast stretch")

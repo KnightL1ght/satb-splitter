@@ -32,6 +32,25 @@ def _wide_meter_stream(score):
     return ms
 
 
+def _split_complex_durations(score) -> bool:
+    """Split complex durations so music21's MusicXML exporter never fails.
+
+    Full-measure rests whose duration is ``"complex"`` (e.g. a 1.5 + 0.375
+    rest filling a custom bar) keep ``fullMeasure='auto'`` by default, which
+    causes ``splitAtDurations`` to skip them while ``restToXml`` still raises
+    ``MusicXMLExportException: Cannot convert complex durations to MusicXML``.
+    Clearing ``fullMeasure = False`` on complex rests lets ``splitAtDurations``
+    break every complex duration into standard tied/sequential components.
+    """
+    for r in score.recurse().getElementsByClass(note.Rest):
+        if r.duration.type == "complex":
+            r.fullMeasure = False
+    if any(el.duration.type == "complex" for el in score.recurse().notesAndRests):
+        score.splitAtDurations(recurse=True)
+        return True
+    return False
+
+
 def _no_rebar_exporter(score):
     """music21's GeneralObjectExporter for ONE call, whose makeNotation does not
     re-bar overfull measures (makeTies gets a meter longer than every bar).
@@ -60,11 +79,13 @@ def _no_rebar_exporter(score):
                 for m in p.getElementsByClass(stream.Measure):
                     p.setElementOffset(m, at)
                     at = opFrac(at + m.highestTime)
+            _split_complex_durations(sc)
             return self.fromScore(sc)
 
         def fromScore(self, sc):
             if self.makeNotation:
                 sc.makeNotation(inPlace=True, meterStream=wide)
+                _split_complex_durations(sc)
                 self.makeNotation = False  # already done: skip the default (re-barring) call
                 try:
                     return super().fromScore(sc)
@@ -273,7 +294,12 @@ def write_musicxml(score, path) -> Path:
     """
     path = Path(path)
     if not _has_overfull_bar(score):
-        score.write("musicxml", fp=str(path))
+        if any(el.duration.type == "complex" for el in score.recurse().notesAndRests):
+            sc = deepcopy(score)
+            _split_complex_durations(sc)
+            sc.write("musicxml", fp=str(path))
+        else:
+            score.write("musicxml", fp=str(path))
     else:
         data = _no_rebar_exporter(score).parse()
         path.write_bytes(data)

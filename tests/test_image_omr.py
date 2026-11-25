@@ -25,8 +25,20 @@ from satb_splitter.omr import (
     preprocess_image_for_omr,
 )
 from satb_splitter.omr.audiveris import AudiverisRun
-from satb_splitter.omr.image_prep import estimate_skew_angle, is_camera_photo
-from satb_splitter.omr.preprocess import prepare_pages_for_omr
+from satb_splitter.omr.image_prep import (
+    _solve_perspective_coeffs,
+    dewarp_paper_perspective,
+    estimate_skew_angle,
+    is_camera_photo,
+    whiten_dark_borders,
+)
+from satb_splitter.omr.preprocess import (
+    AUDIVERIS_SAFE_MAX_PIXELS,
+    OMR_TARGET_DPI,
+    is_raster_scan_page,
+    normalize_pdf_page_for_omr,
+    prepare_pages_for_omr,
+)
 
 
 def _make_staves_image(
@@ -458,3 +470,168 @@ def test_main_window_image_queue_reorder_settings_and_merge(monkeypatch, tmp_pat
 
     win.close()
     app.processEvents()
+
+
+def test_dewarp_paper_perspective_rectifies_trapezoid_photo():
+    """Trapezoidal camera sheet photo with dark table margins is rectified upright."""
+    w, h = 1800, 2400
+    upright = _make_staves_image(w, h, bg_val=250, ink_val=15)
+
+    # Warp upright sheet into a symmetric trapezoid surrounded by dark table (val=55)
+    # Top of sheet is narrower (inset 130 px on both sides) than bottom (inset 20 px)
+    paper_quad = [
+        (130.0, 40.0),
+        (w - 130.0, 40.0),
+        (w - 20.0, h - 40.0),
+        (20.0, h - 40.0),
+    ]
+    src_rect = [
+        (0.0, 0.0),
+        (float(w - 1), 0.0),
+        (float(w - 1), float(h - 1)),
+        (0.0, float(h - 1)),
+    ]
+    # PIL PERSPECTIVE maps destination (trapezoid) -> source (upright rectangle)
+    coeffs = _solve_perspective_coeffs(paper_quad, src_rect)
+    trapezoid = upright.transform(
+        (w, h),
+        Image.Transform.PERSPECTIVE,
+        coeffs,
+        resample=Image.Resampling.BICUBIC,
+        fillcolor=55,
+    )
+
+    rectified, persp_note = dewarp_paper_perspective(trapezoid)
+    assert persp_note is not None
+    assert "Perspective-rectified" in persp_note
+
+    # Rectified staves should be horizontal and outer borders cleaned cleanly
+    angle, _ = estimate_skew_angle(np.asarray(rectified, dtype=np.uint8))
+    assert abs(angle) < 0.5
+
+    out, prep_notes = preprocess_image_for_omr(trapezoid, photo_enhance="auto", deskew=True)
+    assert any("Perspective-rectified" in n for n in prep_notes)
+    out_arr = np.asarray(out, dtype=np.uint8)
+    assert out_arr[5, 5] >= 250
+    assert out_arr[-5, -5] >= 250
+
+
+def test_whiten_dark_borders_cleans_margins_and_skips_clean_scan():
+    clean = _make_staves_image(1800, 2400, bg_val=255, ink_val=15)
+    unchanged, note_clean = whiten_dark_borders(clean)
+    assert note_clean is None
+    assert unchanged is clean
+
+    # Add a 45 px dark margin around the perimeter
+    arr = np.asarray(clean, dtype=np.uint8).copy()
+    arr[:45, :] = 40
+    arr[-45:, :] = 40
+    arr[:, :45] = 40
+    arr[:, -45:] = 40
+    bordered = Image.fromarray(arr, mode="L")
+
+    cleaned, note_b = whiten_dark_borders(bordered)
+    assert note_b is not None
+    assert "Whitened dark outer borders" in note_b
+    c_arr = np.asarray(cleaned, dtype=np.uint8)
+    # Margins whitened
+    assert np.all(c_arr[:20, :] == 255)
+    assert np.all(c_arr[:, :20] == 255)
+    # Interior staves preserved
+    assert np.any(c_arr[400:1800, 300:1500] < 40)
+
+
+def test_normalize_pdf_page_raster_scan_and_oversized_vector(tmp_path: Path):
+    # Case A: pure raster scan PDF (rotated/skewed image embedded at 72 DPI)
+    scan_img = _make_staves_image(1800, 2400).rotate(
+        3.0, resample=Image.Resampling.BICUBIC, expand=True, fillcolor=255
+    )
+    img_path = tmp_path / "scan.png"
+    scan_img.save(img_path)
+
+    scan_pdf = tmp_path / "scan_page.pdf"
+    doc = fitz.open()
+    p = doc.new_page(width=scan_img.width, height=scan_img.height)  # huge 72-DPI pt page
+    p.insert_image(p.rect, filename=str(img_path))
+    doc.save(str(scan_pdf))
+    doc.close()
+
+    d_check = fitz.open(str(scan_pdf))
+    assert is_raster_scan_page(d_check[0]) is True
+    d_check.close()
+
+    notes: list[str] = []
+    changed = normalize_pdf_page_for_omr(scan_pdf, photo_enhance="auto", deskew=True, notes=notes)
+    assert changed is True
+    assert any("Deskewed" in n for n in notes)
+    assert any("Normalized scanned PDF page" in n for n in notes)
+
+    d_after = fitz.open(str(scan_pdf))
+    try:
+        r = d_after[0].rect
+        est_px = (r.width * OMR_TARGET_DPI / 72.0) * (r.height * OMR_TARGET_DPI / 72.0)
+        assert est_px <= AUDIVERIS_SAFE_MAX_PIXELS
+    finally:
+        d_after.close()
+
+    # Case B: oversized vector PDF (> 18M pixels at 300 DPI) gets scaled down
+    vec_big = tmp_path / "vec_big.pdf"
+    d_vec = fitz.open()
+    vp = d_vec.new_page(width=1400, height=1800)  # ~5833x7500 = 43.75M px @ 300 DPI
+    vp.insert_text((100, 100), "Choral Score Title")
+    vp.draw_line((100, 300), (1300, 300))
+    d_vec.save(str(vec_big))
+    d_vec.close()
+
+    vec_notes: list[str] = []
+    assert normalize_pdf_page_for_omr(vec_big, notes=vec_notes) is True
+    assert any("Scaled oversized vector PDF" in n for n in vec_notes)
+    d_vec_after = fitz.open(str(vec_big))
+    try:
+        r2 = d_vec_after[0].rect
+        est_px2 = (r2.width * OMR_TARGET_DPI / 72.0) * (r2.height * OMR_TARGET_DPI / 72.0)
+        assert est_px2 <= AUDIVERIS_SAFE_MAX_PIXELS
+    finally:
+        d_vec_after.close()
+
+    # Case C: normal vector PDF is untouched
+    vec_ok = tmp_path / "vec_ok.pdf"
+    d_ok = fitz.open()
+    okp = d_ok.new_page(width=595, height=842)
+    okp.insert_text((50, 50), "A4 Vector Score")
+    d_ok.save(str(vec_ok))
+    d_ok.close()
+    assert normalize_pdf_page_for_omr(vec_ok) is False
+
+
+def test_run_per_page_omr_logs_notes_for_scanned_pdf(monkeypatch, tmp_path: Path):
+    """PDF preprocessing notes (deskew / normalize) are logged to progress even when not from_images."""
+    import satb_splitter.omr.pipeline as pl
+
+    scan_img = _make_staves_image(1800, 2400).rotate(
+        2.5, resample=Image.Resampling.BICUBIC, expand=True, fillcolor=255
+    )
+    img_path = tmp_path / "scan.png"
+    scan_img.save(img_path)
+
+    scan_pdf = tmp_path / "scanned_book.pdf"
+    doc = fitz.open()
+    p = doc.new_page(width=595, height=842)
+    p.insert_image(p.rect, filename=str(img_path))
+    doc.save(str(scan_pdf))
+    doc.close()
+
+    monkeypatch.setattr(pl, "find_audiveris", lambda a=None: Path("Audiveris.exe"))
+
+    def fake_run(src, out, audiveris=None, timeout_s=600):
+        src = Path(src)
+        mxl = Path(out) / f"{src.stem}.mxl"
+        mxl.write_bytes(b"fake-mxl")
+        return AudiverisRun(input_path=src, success=True, mxl_paths=[mxl])
+
+    monkeypatch.setattr(pl, "run_audiveris_export", fake_run)
+    logs: list[str] = []
+    res = pl.run_per_page_omr(scan_pdf, tmp_path / "work", progress=logs.append)
+    assert res.success_count == 1
+    assert any("Deskewed" in ln for ln in logs)
+

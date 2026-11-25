@@ -116,7 +116,7 @@ def run_per_page_omr(
         photo_enhance=photo_enhance,
         deskew=deskew,
     )
-    if from_images and progress:
+    if wo_notes and progress:
         for ln in wo_notes:
             progress(f"  {ln}")
 
