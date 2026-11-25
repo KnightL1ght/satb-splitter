@@ -13,7 +13,7 @@ Desktop application and CLI toolkit that splits choral & piano-vocal **PDFs**, *
 
 If you just want to run **SATB Splitter** on Windows without installing Python, Java, or Audiveris:
 
-1. Go to the [**Releases**](../../releases) page and download **`SATB-Splitter-v0.2.0-Windows-Portable.zip`**.
+1. Go to the [**Releases**](../../releases) page and download **`SATB-Splitter-v0.3.0-Windows-Portable.zip`**.
 2. Extract the ZIP folder anywhere (Desktop, Documents, or a USB drive).
 3. Double-click **`SATB Splitter.exe`**.
 
@@ -34,7 +34,7 @@ Everything needed for offline PDF Optical Music Recognition (bundled **Audiveris
    - **Unisons**: Choose how shared unison notes on a two-voice staff are handled (default: **Shared note → both voices**).
    - **3-note chords**: Choose how 3+ note simultaneous chords on a two-voice staff are resolved (default: **1 note/voice · Auto (recommended)**, or **Ask for ambiguous chords** to review interactively).
    - **PDF white-out**: Top header band percentage (default `12%` on **All pages**) masked before OMR so ornate title/scripture headers don't trip up Audiveris metronome detection. Failed pages automatically retry with wider white-out (`22%`, `30%`).
-   - **Photo enhance & Combine**: **Auto** automatically detects camera photos, respects smartphone EXIF orientation, flattens uneven lighting/shadows, stretches contrast cleanly, deskews tilted pages, and normalizes resolution to ~300 DPI. Check **Combine queued images into 1 multi-page score** to merge ordered sheet photos into a single score.
+   - **Photo enhance & Combine**: **Auto** automatically detects camera photos and scanned/mobile-scanner PDFs, respects smartphone EXIF orientation, performs trapezoid perspective rectification, removes dark table borders, flattens uneven lighting/shadows, stretches contrast cleanly, deskews tilted pages, and normalizes resolution to ~300 DPI. Check **Combine queued images into 1 multi-page score** to merge ordered sheet photos into a single score.
    - **Audiveris**: Automatically detected (uses the bundled `Audiveris\Audiveris.exe` in portable builds).
 3. **Convert & Split**
    - Click **▶ Convert & Split**. Progress and per-page OMR status appear in the **Log** tab.
@@ -59,7 +59,7 @@ Everything needed for offline PDF Optical Music Recognition (bundled **Audiveris
 
 - **Strictly monophonic output parts**: Each Soprano, Alto, Tenor, and Bass file is rebuilt bar-by-bar as a clean single voice with consistent bar counts and gap-filling rests.
 - **Stem-aware voice separation**: MusicXML voice numbers from OMR are often inconsistent; SATB Splitter uses stem direction, voice grouping, and pitch order to assign upper/lower lines accurately.
-- **Per-page PDF & Photo OMR**: Splits multi-page PDFs into individual pages before running Audiveris, isolating problematic pages and retrying with adaptive header white-out so one difficult page never breaks an entire booklet. Sheet music images & smartphone photos (`.png`, `.jpg`, `.jpeg`, `.webp`, `.bmp`, `.tif`, `.tiff`) get automatic EXIF rotation, uneven-shadow flattening, deskewing, and 300 DPI normalization.
+- **Per-page PDF & Photo OMR**: Splits multi-page PDFs into individual pages before running Audiveris, isolating problematic pages and retrying with adaptive header white-out so one difficult page never breaks an entire booklet. Sheet music images, smartphone photos (`.png`, `.jpg`, `.jpeg`, `.webp`, `.bmp`, `.tif`, `.tiff`), and scanned/mobile-scanner PDFs get automatic EXIF rotation, trapezoid perspective rectification, dark table-border removal, uneven-shadow flattening, deskewing, and automatic 300-DPI normalization.
 - **Layout & marker intelligence**: Handles mixed systems (e.g., `unison` / `tutti`, `S.A.`, `S.A.T.`, `femei` / `women`, `bărbați` / `men`, named solos like `solo tenor`), solo/trio staves above the choir, pickups, repeats, volta endings, fermatas, tempo/metronome marks, and multi-bar rests.
 - **Studio Light & Dark Themes**: Toggle between Studio Light and Studio Dark anytime from the top bar.
 
@@ -131,7 +131,7 @@ If you have PyInstaller installed in `.venv` and a local Audiveris distribution 
 .\scripts\build_portable_zip.ps1
 ```
 
-This builds `release_staging\SATB-Splitter-v0.2.0-Windows-Portable.zip` along with the Audiveris patch source archive `release_staging\audiveris-dev3l-source-patches.zip`.
+This builds `release_staging\SATB-Splitter-v0.3.0-Windows-Portable.zip` along with the Audiveris patch source archive `release_staging\audiveris-dev3l-source-patches.zip`.
 
 ---
 
