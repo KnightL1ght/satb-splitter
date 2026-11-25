@@ -4,9 +4,10 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Callable
+from typing import Callable, Sequence
 
 from satb_splitter.omr.audiveris import AudiverisRun, find_audiveris, run_audiveris_export
+from satb_splitter.omr.image_prep import is_image_path
 from satb_splitter.omr.preprocess import (
     prepare_pages_for_omr,
     safe_whiteout_fraction,
@@ -52,7 +53,7 @@ class OmrResult:
 
 
 def run_per_page_omr(
-    pdf_path: Path | str,
+    pdf_path: Path | str | Sequence[Path | str],
     work_dir: Path | str,
     *,
     whiteout_fraction: float = 0.12,
@@ -63,6 +64,8 @@ def run_per_page_omr(
     progress: Callable[[str], None] | None = None,
     should_cancel: Callable[[], bool] | None = None,
     retry_whiteouts: tuple[float, ...] | list[float] | None = DEFAULT_RETRY_WHITEOUTS,
+    photo_enhance: str = "auto",
+    deskew: bool = True,
 ) -> OmrResult:
     """Run Audiveris **per page** (not full-book).
 
@@ -72,6 +75,8 @@ def run_per_page_omr(
 
     Parameters
     ----------
+    pdf_path:
+        Input PDF path, single image path, or sequence of image paths.
     whiteout_fraction:
         Fraction of page height to white-out at the top (title / scripture).
         Default ``0.12`` avoids Audiveris metronome crashes. Use ``0`` to disable.
@@ -85,8 +90,16 @@ def run_per_page_omr(
         e.g. ``omr/page_01_wo22``) until one exports MusicXML. ``None`` or
         ``()`` disables retries. Pages that still fail stay in ``page_runs``
         with ``success=False`` so callers can warn about missing bars.
+    photo_enhance:
+        ``auto`` | ``on`` | ``off`` — camera photo shadow-flattening & stretch.
+    deskew:
+        Automatically estimate and correct small page skew on image inputs.
     """
-    pdf = Path(pdf_path)
+    is_seq = not isinstance(pdf_path, (str, Path))
+    if is_seq and not pdf_path:
+        raise ValueError("run_per_page_omr requires at least one input path.")
+    pdf = Path(pdf_path[0]) if is_seq else Path(pdf_path)
+    from_images = is_seq or is_image_path(pdf)
     work = Path(work_dir)
     work.mkdir(parents=True, exist_ok=True)
     omr_out = work / "omr"
@@ -95,12 +108,17 @@ def run_per_page_omr(
     exe = find_audiveris(audiveris)
     wo_notes: list[str] = []
     prepared = prepare_pages_for_omr(
-        pdf,
+        pdf_path,
         work,
         whiteout_fraction=whiteout_fraction,
         whiteout_mode=whiteout_mode if whiteout_fraction > 0 else "none",
         notes=wo_notes,
+        photo_enhance=photo_enhance,
+        deskew=deskew,
     )
+    if from_images and progress:
+        for ln in wo_notes:
+            progress(f"  {ln}")
 
     if pages is not None:
         want = set(pages)

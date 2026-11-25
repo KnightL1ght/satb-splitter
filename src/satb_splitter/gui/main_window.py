@@ -12,6 +12,7 @@ from PySide6.QtGui import QAction, QDesktopServices, QDragEnterEvent, QDropEvent
 from PySide6.QtWidgets import (
     QAbstractItemView,
     QApplication,
+    QCheckBox,
     QComboBox,
     QDialog,
     QDoubleSpinBox,
@@ -41,11 +42,12 @@ from satb_splitter.gui.icon import create_app_icon, render_icon_pixmap
 from satb_splitter.gui.styles import apply_app_theme, apply_card_shadow, get_theme_colors
 from satb_splitter.gui.workers import PipelineWorker
 from satb_splitter.omr.audiveris import find_audiveris
+from satb_splitter.omr.image_prep import IMAGE_EXTS, is_image_path
 
 
 APP_NAME = "SATB Splitter"
 ORG = "SATBSplitter"
-SUPPORTED_EXTS = {".pdf", ".musicxml", ".xml", ".mxl"}
+SUPPORTED_EXTS = {".pdf", ".musicxml", ".xml", ".mxl"} | set(IMAGE_EXTS)
 
 VOICE_COLORS = {
     "SATB": "#2563eb",
@@ -108,13 +110,13 @@ class DropZoneFrame(QFrame):
         icon_lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
         lay.addWidget(icon_lbl)
 
-        title = QLabel("Drop Choral PDF or MusicXML Scores Here")
+        title = QLabel("Drop Choral PDF, Photos, or MusicXML Scores Here")
         title.setAlignment(Qt.AlignmentFlag.AlignCenter)
         title.setStyleSheet("font-weight: 800; font-size: 14px; background: transparent;")
         lay.addWidget(title)
 
         sub = QLabel(
-            "Multi-page PDFs run per-page Audiveris OMR  ·  MusicXML (.musicxml / .mxl / .xml) splits directly"
+            "PDFs & photos (.png/.jpg/.webp/.tif) run per-page OMR  ·  MusicXML (.musicxml / .mxl / .xml) splits directly"
         )
         sub.setObjectName("muted")
         sub.setAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -260,6 +262,7 @@ def _add_row(
     *,
     badge: str = "",
     status: str = "",
+    insert_at: int | None = None,
 ) -> QListWidgetItem:
     item = QListWidgetItem()
     item.setData(Qt.ItemDataRole.UserRole, data)
@@ -267,7 +270,10 @@ def _add_row(
     w = _row_widget(title, subtitle, accent, badge=badge, status=status)
     width = max(listw.viewport().width() - 24, 240)
     item.setSizeHint(QSize(width, max(w.sizeHint().height(), 56)))
-    listw.addItem(item)
+    if insert_at is None:
+        listw.addItem(item)
+    else:
+        listw.insertItem(insert_at, item)
     listw.setItemWidget(item, w)
     return item
 
@@ -284,7 +290,7 @@ class MainWindow(QMainWindow):
         self._worker: PipelineWorker | None = None
         self._cancel = Event()
         self._last_result: dict | None = None
-        self._queue: list[Path] = []
+        self._queue: list[Path | list[Path]] = []
         self._queue_results: list[dict] = []
         self._reexporting_divisi = False
         self._last_failed = False
@@ -305,7 +311,7 @@ class MainWindow(QMainWindow):
         self._refresh_audiveris_status()
         self._update_file_count()
         self.setStatusBar(QStatusBar())
-        self.statusBar().showMessage("Add a PDF or MusicXML file to begin.")
+        self.statusBar().showMessage("Add a PDF, sheet photo, or MusicXML file to begin.")
 
     def _build_menu(self) -> None:
         file_menu = self.menuBar().addMenu("&File")
@@ -361,7 +367,7 @@ class MainWindow(QMainWindow):
         hero_text.setSpacing(4)
         t = QLabel(APP_NAME)
         t.setObjectName("heroTitleOnDark")
-        s = QLabel("Choral PDF & MusicXML  →  Soprano · Alto · Tenor · Bass  ·  MuseScore 4")
+        s = QLabel("Choral PDF, Photos & MusicXML  →  Soprano · Alto · Tenor · Bass  ·  MuseScore 4")
         s.setObjectName("heroSubOnDark")
         hero_text.addWidget(t)
         hero_text.addWidget(s)
@@ -447,21 +453,37 @@ class MainWindow(QMainWindow):
         fl.addWidget(self.file_stack, stretch=1)
 
         file_btns = QHBoxLayout()
-        file_btns.setSpacing(8)
+        file_btns.setSpacing(5)
         self.btn_add = QPushButton("＋ Add files…")
-        self.btn_add.setToolTip("Add PDF or MusicXML files to the queue (Ctrl+O)")
+        self.btn_add.setStyleSheet("padding: 6px 10px;")
+        self.btn_add.setToolTip("Add PDF, sheet photo, or MusicXML files to the queue (Ctrl+O)")
         self.btn_add.clicked.connect(self.browse_files)
         self.btn_add_folder = QPushButton("Add Folder…")
-        self.btn_add_folder.setToolTip("Add all PDF and MusicXML scores from a folder (Ctrl+Shift+O)")
+        self.btn_add_folder.setStyleSheet("padding: 6px 10px;")
+        self.btn_add_folder.setToolTip("Add all PDF, image, and MusicXML scores from a folder (Ctrl+Shift+O)")
         self.btn_add_folder.clicked.connect(self.browse_input_folder)
+        self.btn_move_up = QPushButton("▲")
+        self.btn_move_up.setFixedWidth(30)
+        self.btn_move_up.setStyleSheet("padding: 6px 0px;")
+        self.btn_move_up.setToolTip("Move selected item up (reorder multi-page photo sheets)")
+        self.btn_move_up.clicked.connect(self.move_selected_up)
+        self.btn_move_down = QPushButton("▼")
+        self.btn_move_down.setFixedWidth(30)
+        self.btn_move_down.setStyleSheet("padding: 6px 0px;")
+        self.btn_move_down.setToolTip("Move selected item down (reorder multi-page photo sheets)")
+        self.btn_move_down.clicked.connect(self.move_selected_down)
         self.btn_remove = QPushButton("Remove")
+        self.btn_remove.setStyleSheet("padding: 6px 10px;")
         self.btn_remove.setToolTip("Remove selected items from the queue")
         self.btn_remove.clicked.connect(self.remove_selected)
         self.btn_clear = QPushButton("Clear")
+        self.btn_clear.setStyleSheet("padding: 6px 10px;")
         self.btn_clear.setToolTip("Clear the entire input queue")
         self.btn_clear.clicked.connect(self.clear_files)
         file_btns.addWidget(self.btn_add)
         file_btns.addWidget(self.btn_add_folder)
+        file_btns.addWidget(self.btn_move_up)
+        file_btns.addWidget(self.btn_move_down)
         file_btns.addWidget(self.btn_remove)
         file_btns.addWidget(self.btn_clear)
         file_btns.addStretch()
@@ -535,7 +557,7 @@ class MainWindow(QMainWindow):
             self.divisi_combo.addItem(label, data)
         form.addRow("3-note chords", self.divisi_combo)
 
-        form.addRow(self._subsection("PDF OMR (AUDIVERIS)"))
+        form.addRow(self._subsection("PDF & IMAGE OMR (AUDIVERIS)"))
         self.whiteout_spin = QDoubleSpinBox()
         self.whiteout_spin.setRange(0.0, 40.0)
         self.whiteout_spin.setSingleStep(1.0)
@@ -545,7 +567,7 @@ class MainWindow(QMainWindow):
         self.whiteout_spin.setToolTip("Top header margin masked before OMR to strip title/composer graphics")
 
         self.whiteout_mode = QComboBox()
-        self.whiteout_mode.setToolTip("Which PDF pages receive top header white-out before OMR")
+        self.whiteout_mode.setToolTip("Which PDF/image pages receive top header white-out before OMR")
         self.whiteout_mode.addItem("All pages", "all")
         self.whiteout_mode.addItem("First page only", "first")
         self.whiteout_mode.addItem("None", "none")
@@ -555,6 +577,22 @@ class MainWindow(QMainWindow):
         wo_row.addWidget(self.whiteout_spin, stretch=1)
         wo_row.addWidget(self.whiteout_mode, stretch=1)
         form.addRow("PDF white-out", wo_row)
+
+        self.photo_enhance_combo = QComboBox()
+        self.photo_enhance_combo.setToolTip(
+            "Automatically flatten uneven lighting/shadows and deskew camera photos before OMR"
+        )
+        self.photo_enhance_combo.addItem("Auto (detect camera photos)", "auto")
+        self.photo_enhance_combo.addItem("On (always enhance photos)", "on")
+        self.photo_enhance_combo.addItem("Off (raw image)", "off")
+        form.addRow("Photo enhance", self.photo_enhance_combo)
+
+        self.chk_merge_images = QCheckBox("Combine queued images into 1 multi-page score")
+        self.chk_merge_images.setChecked(False)
+        self.chk_merge_images.setToolTip(
+            "Merge all queued sheet images (in list order) into one multi-page score before OMR & splitting"
+        )
+        form.addRow("", self.chk_merge_images)
 
         self.audiveris_edit = QLineEdit()
         self.audiveris_edit.setPlaceholderText("Auto-detect Audiveris.exe (dev3l prioritized)")
@@ -623,7 +661,7 @@ class MainWindow(QMainWindow):
         log_l.setSpacing(8)
 
         log_bar = QHBoxLayout()
-        self.step_label = QLabel("Ready — add PDF or MusicXML files to start.")
+        self.step_label = QLabel("Ready — add PDF, sheet photos, or MusicXML files to start.")
         self.step_label.setObjectName("muted")
         self.btn_copy_log = QPushButton("Copy log")
         self.btn_copy_log.setObjectName("subtle")
@@ -681,7 +719,7 @@ class MainWindow(QMainWindow):
         results_l.addWidget(self.result_stack, stretch=1)
 
         res_btns = QHBoxLayout()
-        res_btns.setSpacing(8)
+        res_btns.setSpacing(6)
         self.btn_open_satb = QPushButton("Open SATB in MuseScore")
         self.btn_open_satb.setObjectName("success")
         self.btn_open_satb.clicked.connect(self.open_satb_musescore)
@@ -805,6 +843,17 @@ class MainWindow(QMainWindow):
         dm_idx = self.divisi_combo.findData(dm)
         if dm_idx >= 0:
             self.divisi_combo.setCurrentIndex(dm_idx)
+        pe = self.settings.value("photo_enhance", "auto")
+        pe_idx = self.photo_enhance_combo.findData(pe)
+        if pe_idx >= 0:
+            self.photo_enhance_combo.setCurrentIndex(pe_idx)
+        merge_val = self.settings.value("merge_images", False)
+        is_merge = (
+            merge_val.strip().lower() in ("true", "1", "yes")
+            if isinstance(merge_val, str)
+            else bool(merge_val)
+        )
+        self.chk_merge_images.setChecked(is_merge)
 
     def _save_settings(self) -> None:
         self.settings.setValue("output_dir", self.out_edit.text())
@@ -812,6 +861,8 @@ class MainWindow(QMainWindow):
         self.settings.setValue("whiteout_pct", self.whiteout_spin.value())
         self.settings.setValue("template", self.template_combo.currentData())
         self.settings.setValue("divisi_mode", self.divisi_combo.currentData())
+        self.settings.setValue("photo_enhance", self.photo_enhance_combo.currentData())
+        self.settings.setValue("merge_images", self.chk_merge_images.isChecked())
         self.settings.setValue("theme", self._theme)
 
     def _overrides_path(self, work_dir: Path, stem: str) -> Path:
@@ -878,6 +929,39 @@ class MainWindow(QMainWindow):
             else:
                 self.add_file(p_obj)
 
+    def _add_file_row(
+        self,
+        path: Path,
+        resolved: str,
+        *,
+        insert_at: int | None = None,
+    ) -> QListWidgetItem:
+        ext = path.suffix.lower()
+        is_pdf = ext == ".pdf"
+        is_img = is_image_path(path)
+        if is_pdf:
+            badge = "PDF · OMR"
+            accent = "#7c3aed"
+            kind = "Per-page OMR + split"
+        elif is_img:
+            badge = "IMAGE · OMR"
+            accent = "#0284c7"
+            kind = "Photo enhance + OMR + split"
+        else:
+            badge = "MusicXML"
+            accent = "#0d9488"
+            kind = "Direct voice split"
+        return _add_row(
+            self.file_list,
+            path.name,
+            f"{kind}  ·  {path.parent}",
+            resolved,
+            accent,
+            badge=badge,
+            status="Queued",
+            insert_at=insert_at,
+        )
+
     def add_file(self, path: Path) -> None:
         path = Path(path)
         if not path.is_file():
@@ -887,26 +971,14 @@ class MainWindow(QMainWindow):
             QMessageBox.warning(
                 self,
                 APP_NAME,
-                f"Unsupported type: {ext}\n\nUse PDF or MusicXML (.musicxml / .mxl / .xml).",
+                f"Unsupported type: {ext}\n\nUse PDF, sheet image (.png/.jpg/.webp/.tif/.bmp), or MusicXML (.musicxml / .mxl / .xml).",
             )
             return
         resolved = str(path.resolve())
         for i in range(self.file_list.count()):
             if self.file_list.item(i).data(Qt.ItemDataRole.UserRole) == resolved:
                 return
-        is_pdf = ext == ".pdf"
-        badge = "PDF · OMR" if is_pdf else "MusicXML"
-        accent = "#7c3aed" if is_pdf else "#0d9488"
-        kind = "Per-page OMR + split" if is_pdf else "Direct voice split"
-        _add_row(
-            self.file_list,
-            path.name,
-            f"{kind}  ·  {path.parent}",
-            resolved,
-            accent,
-            badge=badge,
-            status="Queued",
-        )
+        self._add_file_row(path, resolved)
         self._update_file_count()
         self.statusBar().showMessage(
             f"Added {path.name}  ({self.file_list.count()} in queue)"
@@ -929,12 +1001,16 @@ class MainWindow(QMainWindow):
         self._update_file_count()
 
     def browse_files(self) -> None:
+        img_globs = " ".join(f"*{ext}" for ext in sorted(IMAGE_EXTS))
         paths, _ = QFileDialog.getOpenFileNames(
             self,
             "Add score files",
             str(self.settings.value("last_dir", str(Path.home()))),
-            "Scores (*.pdf *.musicxml *.xml *.mxl);;PDF (*.pdf);;"
-            "MusicXML (*.musicxml *.xml *.mxl);;All (*.*)",
+            f"Scores (*.pdf {img_globs} *.musicxml *.xml *.mxl);;"
+            f"PDF (*.pdf);;"
+            f"Sheet Images ({img_globs});;"
+            f"MusicXML (*.musicxml *.xml *.mxl);;"
+            f"All (*.*)",
         )
         if paths:
             self.settings.setValue("last_dir", str(Path(paths[0]).parent))
@@ -949,6 +1025,47 @@ class MainWindow(QMainWindow):
         if d:
             self.settings.setValue("last_dir", d)
             self.add_paths([Path(d)])
+
+    def _move_queue_rows(self, delta: int) -> None:
+        count = self.file_list.count()
+        if count < 2:
+            return
+        rows = sorted({self.file_list.row(it) for it in self.file_list.selectedItems()})
+        if not rows:
+            cur = self.file_list.currentRow()
+            if cur < 0:
+                return
+            rows = [cur]
+        if delta < 0 and rows[0] + delta < 0:
+            return
+        if delta > 0 and rows[-1] + delta >= count:
+            return
+
+        order = rows if delta < 0 else list(reversed(rows))
+        new_rows: list[int] = []
+        for r in order:
+            item = self.file_list.item(r)
+            if item is None:
+                continue
+            resolved = str(item.data(Qt.ItemDataRole.UserRole) or "")
+            self.file_list.takeItem(r)
+            target_r = r + delta
+            self._add_file_row(Path(resolved), resolved, insert_at=target_r)
+            new_rows.append(target_r)
+
+        self.file_list.clearSelection()
+        for r in new_rows:
+            it = self.file_list.item(r)
+            if it is not None:
+                it.setSelected(True)
+        if new_rows:
+            self.file_list.setCurrentRow(new_rows[0])
+
+    def move_selected_up(self) -> None:
+        self._move_queue_rows(-1)
+
+    def move_selected_down(self) -> None:
+        self._move_queue_rows(1)
 
     def remove_selected(self) -> None:
         for item in self.file_list.selectedItems():
@@ -979,7 +1096,7 @@ class MainWindow(QMainWindow):
         if self._thread is not None:
             return
         if self.file_list.count() == 0:
-            QMessageBox.information(self, APP_NAME, "Add at least one PDF or MusicXML file first.")
+            QMessageBox.information(self, APP_NAME, "Add at least one PDF, sheet image, or MusicXML file first.")
             return
         out = self.out_edit.text().strip()
         if not out:
@@ -991,14 +1108,28 @@ class MainWindow(QMainWindow):
         items = self.file_list.selectedItems()
         if not items:
             items = [self.file_list.item(i) for i in range(self.file_list.count())]
-        self._queue = []
+        raw_paths: list[Path] = []
         for it in items:
             data = it.data(Qt.ItemDataRole.UserRole)
             if data:
-                self._queue.append(Path(str(data)))
-        if not self._queue:
+                raw_paths.append(Path(str(data)))
+        if not raw_paths:
             QMessageBox.warning(self, APP_NAME, "Could not read file paths from the list.")
             return
+
+        self._queue = []
+        if self.chk_merge_images.isChecked():
+            img_group = [p for p in raw_paths if is_image_path(p)]
+            inserted_group = False
+            for p in raw_paths:
+                if is_image_path(p):
+                    if not inserted_group:
+                        self._queue.append(img_group)
+                        inserted_group = True
+                else:
+                    self._queue.append(p)
+        else:
+            self._queue = list(raw_paths)
 
         self._cancel.clear()
         self._queue_results = []
@@ -1042,9 +1173,12 @@ class MainWindow(QMainWindow):
         is_pdf: bool,
         divisi_overrides: dict[str, str],
         mxl_paths: list[Path] | None = None,
+        is_image: bool = False,
+        image_paths: list[Path] | None = None,
     ) -> None:
         whiteout_frac = self.whiteout_spin.value() / 100.0
         divisi_mode = str(self.divisi_combo.currentData() or "monophonic_auto")
+        photo_enhance = str(self.photo_enhance_combo.currentData() or "auto")
         self._thread = QThread()
         self._worker = PipelineWorker(
             path,
@@ -1058,6 +1192,10 @@ class MainWindow(QMainWindow):
             divisi_mode=divisi_mode,
             divisi_overrides=divisi_overrides,
             mxl_paths=mxl_paths,
+            is_image=is_image,
+            image_paths=image_paths,
+            photo_enhance=photo_enhance,
+            deskew=True,
             cancel_event=self._cancel,
         )
         self._worker.moveToThread(self._thread)
@@ -1075,20 +1213,41 @@ class MainWindow(QMainWindow):
             self._finish_queue()
             return
 
-        path = self._queue.pop(0)
+        entry = self._queue.pop(0)
         out = self.out_edit.text().strip()
-        work = Path(out) / path.stem
-        is_pdf = path.suffix.lower() == ".pdf"
+        if isinstance(entry, list):
+            paths = [Path(p) for p in entry]
+            path = paths[0]
+            work = Path(out) / path.stem
+            is_pdf = False
+            is_image = True
+            image_paths: list[Path] | None = paths
+            label = f"{path.name} (+{len(paths) - 1} page(s))" if len(paths) > 1 else path.name
+        else:
+            path = Path(entry)
+            work = Path(out) / path.stem
+            is_pdf = path.suffix.lower() == ".pdf"
+            is_image = is_image_path(path)
+            image_paths = [path] if is_image else None
+            label = path.name
 
-        self.step_label.setText(f"Processing {path.name}…")
-        self.statusBar().showMessage(f"Processing {path.name}…")
-        self.log(f"\n── {path.name} ──")
-        self.log(f"Input:  {path}")
+        self.step_label.setText(f"Processing {label}…")
+        self.statusBar().showMessage(f"Processing {label}…")
+        self.log(f"\n── {label} ──")
+        if image_paths and len(image_paths) > 1:
+            self.log(f"Input:  {len(image_paths)} images -> {', '.join(p.name for p in image_paths)}")
+        else:
+            self.log(f"Input:  {path}")
         self.log(f"Output: {work}")
-        if is_pdf:
+        if is_pdf or is_image:
+            extra = (
+                f" · photo={self.photo_enhance_combo.currentData()}"
+                if is_image
+                else ""
+            )
             self.log(
                 f"OMR: per-page · white-out {self.whiteout_spin.value():.0f}% "
-                f"· {self.whiteout_mode.currentText()}"
+                f"· {self.whiteout_mode.currentText()}{extra}"
             )
 
         self._start_worker(
@@ -1096,6 +1255,8 @@ class MainWindow(QMainWindow):
             work,
             is_pdf=is_pdf,
             divisi_overrides=self._load_overrides(work, path.stem),
+            is_image=is_image,
+            image_paths=image_paths,
         )
 
     def _cleanup_thread(self) -> None:
@@ -1164,6 +1325,7 @@ class MainWindow(QMainWindow):
         if not mxl_paths:
             return
         is_pdf = input_path.suffix.lower() == ".pdf"
+        is_image = is_image_path(input_path)
         self._cancel.clear()
         self._reexporting_divisi = True
         self._last_failed = False
@@ -1183,6 +1345,7 @@ class MainWindow(QMainWindow):
             is_pdf=is_pdf,
             divisi_overrides=overrides,
             mxl_paths=mxl_paths,
+            is_image=is_image,
         )
 
     def _refresh_kpis(self) -> None:
@@ -1387,7 +1550,7 @@ class MainWindow(QMainWindow):
             f"About {APP_NAME}",
             (
                 f"<h2>{APP_NAME} · Studio Edition</h2>"
-                "<p>Convert choral PDFs and MusicXML into Soprano, Alto, Tenor, Bass parts "
+                "<p>Convert choral PDFs, sheet music photos, and MusicXML into Soprano, Alto, Tenor, Bass parts "
                 "and MuseScore 4 (.mscz) proof scores.</p>"
                 "<p>After a split, open <b>*_SATB.musicxml</b> or <b>*_SATB.mscz</b> in MuseScore "
                 "to review all four voices together.</p>"

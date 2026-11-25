@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+from typing import Sequence
 
 
 def _require_fitz():
@@ -160,39 +161,64 @@ def whiteout_top_band(
 
 
 def prepare_pages_for_omr(
-    pdf_path: Path | str,
+    pdf_path: Path | str | Sequence[Path | str],
     work_dir: Path | str,
     *,
     whiteout_fraction: float = 0.12,
     whiteout_mode: str = "all",
     notes: list[str] | None = None,
+    photo_enhance: str = "auto",
+    deskew: bool = True,
 ) -> list[Path]:
-    """Split PDF into pages and optionally white-out top bands.
+    """Split PDF (or sheet music images) into pages and optionally white-out top bands.
 
     Parameters
     ----------
+    pdf_path:
+        Either a single PDF path, a single image path, or a sequence of image paths.
     whiteout_mode:
         ``all`` — white-out every page (recommended for large Romanian scores).
         ``none`` — no white-out.
         ``first`` — only page 1.
     notes:
-        Optional list that receives one line per page whose band had to be
-        clamped above the first staff (so callers can log it).
+        Optional list that receives image preprocessing notes and one line per
+        page whose band had to be clamped above the first staff.
+    photo_enhance:
+        ``auto`` | ``on`` | ``off`` — camera photo shadow-flattening & stretch.
+    deskew:
+        Automatically estimate and correct small page skew on image inputs.
     """
+    from satb_splitter.omr.image_prep import images_to_pdf, is_image_path
+
     work = Path(work_dir)
     pages_dir = work / "pages"
     clean_dir = work / "pages_clean"
-    pages = split_pdf_pages(pdf_path, pages_dir)
-    # Recover explicit header tempo from original text BEFORE hiding the header.
-    # No changes to the band size, staff protection, or retry policy.
-    from satb_splitter.omr.header_tempo import cache_header_tempos
-    for page in pages:
-        try:
-            cache_header_tempos(page)
-        except Exception as exc:  # best effort, like section-marker recovery
-            if notes is not None:
-                notes.append(f"{page.name}: PDF header tempo scan skipped ({exc})")
 
+    is_seq = not isinstance(pdf_path, (str, Path))
+    from_images = is_seq or is_image_path(pdf_path)
+    if from_images:
+        img_paths = [Path(p) for p in pdf_path] if is_seq else [Path(pdf_path)]
+        pdf_src: Path | str = images_to_pdf(
+            img_paths,
+            work / "images_input.pdf",
+            photo_enhance=photo_enhance,
+            deskew=deskew,
+            notes=notes,
+        )
+    else:
+        pdf_src = pdf_path
+
+    pages = split_pdf_pages(pdf_src, pages_dir)
+    if not from_images:
+        # Recover explicit header tempo from original text BEFORE hiding the header.
+        # No changes to the band size, staff protection, or retry policy.
+        from satb_splitter.omr.header_tempo import cache_header_tempos
+        for page in pages:
+            try:
+                cache_header_tempos(page)
+            except Exception as exc:  # best effort, like section-marker recovery
+                if notes is not None:
+                    notes.append(f"{page.name}: PDF header tempo scan skipped ({exc})")
 
     if whiteout_mode == "none" or whiteout_fraction <= 0:
         return pages

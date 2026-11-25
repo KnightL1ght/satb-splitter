@@ -1,6 +1,6 @@
 # SATB Splitter
 
-Desktop application and CLI toolkit that splits choral & piano-vocal **PDFs** and **MusicXML** scores into separate **Soprano, Alto, Tenor, and Bass** parts — plus a combined SATB score and optional MuseScore 4 `.mscz` export.
+Desktop application and CLI toolkit that splits choral & piano-vocal **PDFs**, **sheet music photos/images**, and **MusicXML** scores into separate **Soprano, Alto, Tenor, and Bass** parts — plus a combined SATB score and optional MuseScore 4 `.mscz` export.
 
 <p align="center">
   <img src="assets/ui_preview_light.png" alt="SATB Splitter Studio — Light Theme" width="49%" />
@@ -26,14 +26,15 @@ Everything needed for offline PDF Optical Music Recognition (bundled **Audiveris
 ## How to Use (Step-by-Step Guide)
 
 1. **Add scores**
-   - Drag and drop `.pdf`, `.musicxml`, `.mxl`, or `.xml` files (or entire folders) onto the drop zone — or onto **`SATB Splitter.exe`** directly.
-   - Or click **＋ Add files…** / **Add Folder…** in the **Input Scores** panel.
+   - Drag and drop `.pdf`, sheet music images/photos (`.png`, `.jpg`, `.jpeg`, `.webp`, `.bmp`, `.tif`, `.tiff`), or `.musicxml` / `.mxl` / `.xml` files (or entire folders) onto the drop zone — or onto **`SATB Splitter.exe`** directly.
+   - Or click **＋ Add files…** / **Add Folder…** in the **Input Scores** panel, and use **▲ / ▼** to reorder multi-page sheet photos.
 2. **Choose Pipeline Options**
    - **Output**: Pick where the generated voice files should be saved.
    - **Layout**: Leave on **Auto-detect layout** (automatically detects 2-staff `SA / TB`, 3-staff `SA / T / B`, 4-staff open score, and single-staff scores), or choose a specific layout template.
    - **Unisons**: Choose how shared unison notes on a two-voice staff are handled (default: **Shared note → both voices**).
    - **3-note chords**: Choose how 3+ note simultaneous chords on a two-voice staff are resolved (default: **1 note/voice · Auto (recommended)**, or **Ask for ambiguous chords** to review interactively).
    - **PDF white-out**: Top header band percentage (default `12%` on **All pages**) masked before OMR so ornate title/scripture headers don't trip up Audiveris metronome detection. Failed pages automatically retry with wider white-out (`22%`, `30%`).
+   - **Photo enhance & Combine**: **Auto** automatically detects camera photos, respects smartphone EXIF orientation, flattens uneven lighting/shadows, stretches contrast cleanly, deskews tilted pages, and normalizes resolution to ~300 DPI. Check **Combine queued images into 1 multi-page score** to merge ordered sheet photos into a single score.
    - **Audiveris**: Automatically detected (uses the bundled `Audiveris\Audiveris.exe` in portable builds).
 3. **Convert & Split**
    - Click **▶ Convert & Split**. Progress and per-page OMR status appear in the **Log** tab.
@@ -58,7 +59,7 @@ Everything needed for offline PDF Optical Music Recognition (bundled **Audiveris
 
 - **Strictly monophonic output parts**: Each Soprano, Alto, Tenor, and Bass file is rebuilt bar-by-bar as a clean single voice with consistent bar counts and gap-filling rests.
 - **Stem-aware voice separation**: MusicXML voice numbers from OMR are often inconsistent; SATB Splitter uses stem direction, voice grouping, and pitch order to assign upper/lower lines accurately.
-- **Per-page PDF OMR**: Splits multi-page PDFs into individual pages before running Audiveris, isolating problematic pages and retrying with adaptive header white-out so one difficult page never breaks an entire booklet.
+- **Per-page PDF & Photo OMR**: Splits multi-page PDFs into individual pages before running Audiveris, isolating problematic pages and retrying with adaptive header white-out so one difficult page never breaks an entire booklet. Sheet music images & smartphone photos (`.png`, `.jpg`, `.jpeg`, `.webp`, `.bmp`, `.tif`, `.tiff`) get automatic EXIF rotation, uneven-shadow flattening, deskewing, and 300 DPI normalization.
 - **Layout & marker intelligence**: Handles mixed systems (e.g., `unison` / `tutti`, `S.A.`, `S.A.T.`, `femei` / `women`, `bărbați` / `men`, named solos like `solo tenor`), solo/trio staves above the choir, pickups, repeats, volta endings, fermatas, tempo/metronome marks, and multi-bar rests.
 - **Studio Light & Dark Themes**: Toggle between Studio Light and Studio Dark anytime from the top bar.
 
@@ -81,7 +82,7 @@ satb-split score.musicxml -o outdir --template four_staff_open
 satb-split score.musicxml -o outdir --unison duplicate_both --divisi monophonic_auto
 ```
 
-### Per-page PDF OMR + Split (`satb-omr`)
+### Per-page PDF & Photo OMR + Split (`satb-omr`)
 
 ```bash
 # Run per-page Audiveris OMR only
@@ -90,7 +91,10 @@ satb-omr path/to/score.pdf -o workdir
 # Run OMR, split every page, and merge into one set of SATB + S/A/T/B files
 satb-omr score.pdf -o workdir --split
 
-# Customize top-band white-out and retries
+# Run OMR on multi-page camera photos (auto EXIF, shadow flatten, deskew) and split
+satb-omr p1.jpg p2.jpg -o workdir --split
+
+# Customize top-band white-out, photo enhancement, and retries
 satb-omr score.pdf -o workdir --whiteout 0.14 --whiteout-mode all --retry-whiteout 0.22,0.30 --split
 ```
 

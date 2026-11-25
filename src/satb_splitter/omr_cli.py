@@ -6,6 +6,7 @@ import argparse
 import sys
 from pathlib import Path
 
+from satb_splitter.omr.image_prep import is_image_path
 from satb_splitter.omr.pipeline import DEFAULT_RETRY_WHITEOUTS, run_per_page_omr
 
 
@@ -33,19 +34,35 @@ def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(
         prog="satb-omr",
         description=(
-            "Convert a PDF score to MusicXML using Audiveris **per page** "
+            "Convert a PDF or sheet-music image(s) to MusicXML using Audiveris **per page** "
             "(more reliable than full-book for large scores). "
             "Optionally white-out the top title/scripture band to avoid "
             "Audiveris metronome crashes on Romanian text."
         ),
     )
-    p.add_argument("pdf", type=Path, help="Input PDF score")
+    p.add_argument(
+        "inputs",
+        nargs="+",
+        type=Path,
+        help="Input PDF score or one/more sheet music image files (.png/.jpg/.webp/.tif/.bmp)",
+    )
     p.add_argument(
         "-o",
         "--work-dir",
         type=Path,
         default=None,
-        help="Working directory for pages + OMR output (default: <pdf_stem>_omr)",
+        help="Working directory for pages + OMR output (default: <input_stem>_omr)",
+    )
+    p.add_argument(
+        "--photo-enhance",
+        choices=["auto", "on", "off"],
+        default="auto",
+        help="Camera photo shadow-flattening & contrast stretch (default: auto)",
+    )
+    p.add_argument(
+        "--no-deskew",
+        action="store_true",
+        help="Disable automatic skew estimation & straightening on image inputs",
     )
     p.add_argument(
         "--whiteout",
@@ -138,26 +155,48 @@ def _parse_fracs(spec: str) -> tuple[float, ...]:
 def main(argv: list[str] | None = None) -> int:
     make_stdio_safe()
     args = build_parser().parse_args(argv)
-    pdf: Path = args.pdf
-    if not pdf.is_file():
-        print(f"error: PDF not found: {pdf}", file=sys.stderr)
+    inputs: list[Path] = list(args.inputs)
+    for p in inputs:
+        if not p.is_file():
+            print(f"error: input file not found: {p}", file=sys.stderr)
+            return 1
+
+    img_flags = [is_image_path(p) for p in inputs]
+    if any(img_flags) and not all(img_flags):
+        print(
+            "error: cannot mix PDF and image files in a single satb-omr invocation.",
+            file=sys.stderr,
+        )
+        return 1
+    if not all(img_flags) and len(inputs) > 1:
+        print(
+            "error: pass a single PDF or one/more image files.",
+            file=sys.stderr,
+        )
         return 1
 
-    work = args.work_dir or Path(f"{pdf.stem}_omr")
+    primary = inputs[0]
+    from_images = all(img_flags)
+    omr_source: Path | list[Path] = inputs if from_images else primary
+    work = args.work_dir or Path(f"{primary.stem}_omr")
     page_list = _parse_pages(args.pages) if args.pages else None
     whiteout_mode = args.whiteout_mode
     if args.whiteout <= 0:
         whiteout_mode = "none"
 
     if not args.quiet:
-        print(f"PDF:       {pdf}")
+        if from_images:
+            print(f"Images:    {len(inputs)} file(s) ({', '.join(p.name for p in inputs)})")
+            print(f"Photo prep: enhance={args.photo_enhance} deskew={not args.no_deskew}")
+        else:
+            print(f"PDF:       {primary}")
         print(f"Work dir:  {work.resolve()}")
         print(f"White-out: fraction={args.whiteout} mode={whiteout_mode}")
         print("Mode:      per-page OMR (not full-book)")
         print("Running Audiveris...")
 
     result = run_per_page_omr(
-        pdf,
+        omr_source,
         work,
         whiteout_fraction=max(0.0, args.whiteout),
         whiteout_mode=whiteout_mode,
@@ -165,6 +204,8 @@ def main(argv: list[str] | None = None) -> int:
         timeout_s=args.timeout,
         pages=page_list,
         retry_whiteouts=_parse_fracs(args.retry_whiteout),
+        photo_enhance=args.photo_enhance,
+        deskew=not args.no_deskew,
     )
 
     if result.audiveris_path is None and result.fail_count:
@@ -197,9 +238,16 @@ def main(argv: list[str] | None = None) -> int:
             )
         notes = getattr(result, "whiteout_notes", []) or []
         if notes:
-            print(f"\nWhite-out clamped above the first staff on {len(notes)} page(s) (no music erased):")
-            for ln in notes:
-                print(f"  {ln}")
+            wo_clamp = [ln for ln in notes if "clamped to" in ln]
+            prep_notes = [ln for ln in notes if "clamped to" not in ln]
+            if prep_notes:
+                print("\nImage preprocessing:")
+                for ln in prep_notes:
+                    print(f"  {ln}")
+            if wo_clamp:
+                print(f"\nWhite-out clamped above the first staff on {len(wo_clamp)} page(s) (no music erased):")
+                for ln in wo_clamp:
+                    print(f"  {ln}")
         print(f"\nMusicXML files ({len(result.mxl_paths)}):")
         for p in result.mxl_paths:
             print(f"  {p}")
@@ -218,7 +266,7 @@ def main(argv: list[str] | None = None) -> int:
         written, log, combined = split_and_merge_mxl_files(
             result.mxl_paths,
             split_dir,
-            pdf.stem,
+            primary.stem,
             auto_layout=True,
             omr_failures=failed,
         )

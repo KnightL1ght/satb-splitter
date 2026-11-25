@@ -60,6 +60,9 @@ if (Test-Path $pyiWork) { Remove-Item -Recurse -Force $pyiWork }
     --specpath "$pyiSpec" `
     --add-data "$root\templates;templates" `
     --add-data "$root\assets;assets" `
+    --hidden-import PIL `
+    --hidden-import PIL.ImageOps `
+    --hidden-import PIL.ImageFilter `
     --exclude-module PySide6.QtWebEngineCore `
     --exclude-module PySide6.QtWebEngineWidgets `
     --exclude-module PySide6.QtWebChannel `

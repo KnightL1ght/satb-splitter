@@ -33,6 +33,10 @@ class PipelineWorker(QObject):
         divisi_mode: str = "monophonic_auto",
         divisi_overrides: dict[str, str] | None = None,
         mxl_paths: list[Path] | None = None,
+        is_image: bool = False,
+        image_paths: list[Path] | None = None,
+        photo_enhance: str = "auto",
+        deskew: bool = True,
         cancel_event: Event | None = None,
         parent=None,
     ):
@@ -40,6 +44,10 @@ class PipelineWorker(QObject):
         self.input_path = Path(input_path)
         self.work_dir = Path(work_dir)
         self.is_pdf = is_pdf
+        self.is_image = is_image
+        self.image_paths = [Path(p) for p in image_paths] if image_paths is not None else None
+        self.photo_enhance = photo_enhance
+        self.deskew = deskew
         self.whiteout = whiteout
         self.whiteout_mode = whiteout_mode
         self.template = template
@@ -86,23 +94,28 @@ class PipelineWorker(QObject):
         combined_result = None
         omr_failures: list[str] = []
 
+        is_omr = self.is_pdf or self.is_image or bool(self.image_paths)
+
         if self.mxl_paths is not None:
             mxl_paths = list(self.mxl_paths)
             self.progress.emit(
                 f"Re-splitting {len(mxl_paths)} cached MusicXML file(s) with updated chord choices…"
             )
-        elif self.is_pdf:
+        elif is_omr:
             self.progress.emit("Starting per-page OMR (Audiveris)…")
             from satb_splitter.omr.pipeline import run_per_page_omr
 
+            omr_src = list(self.image_paths) if self.image_paths else self.input_path
             omr = run_per_page_omr(
-                self.input_path,
+                omr_src,
                 self.work_dir / "omr_work",
                 whiteout_fraction=self.whiteout,
                 whiteout_mode=self.whiteout_mode if self.whiteout > 0 else "none",
                 audiveris=self.audiveris,
                 progress=self.progress.emit,
                 should_cancel=self.cancel_event.is_set,
+                photo_enhance=self.photo_enhance,
+                deskew=self.deskew,
             )
             self._check_cancel()
             for run in omr.page_runs:
@@ -155,7 +168,7 @@ class PipelineWorker(QObject):
                 divisi_overrides=dict(self.divisi_overrides),
             )
 
-        if len(mxl_paths) == 1 and not self.is_pdf and not cfg.divisi_overrides:
+        if len(mxl_paths) == 1 and not is_omr and not cfg.divisi_overrides:
             result = split_file(mxl_paths[0], cfg, auto_layout=auto)
             combined_result = result
             written = write_satb_files(result, voices_dir, basename, combined=True)
@@ -201,7 +214,7 @@ class PipelineWorker(QObject):
         mscz_msg = getattr(combined_result, "mscz_message", "") if combined_result is not None else ""
         if mscz_msg:
             line = ("" if mscz_path else "WARNING: ") + mscz_msg
-            if len(mxl_paths) == 1 and not self.is_pdf:
+            if len(mxl_paths) == 1 and not is_omr:
                 logs.append(line)
                 self.progress.emit(line)
         self.progress.emit("Done.")
