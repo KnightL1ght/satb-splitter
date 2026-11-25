@@ -1,0 +1,658 @@
+{
+ "records": [
+  {
+   "piece": "100",
+   "page": 1,
+   "bar": {
+    "rust_pos": 10,
+    "aud_pos": 10,
+    "mxl_number_aud": "10",
+    "mxl_number_rust": "10",
+    "mxl_file": "b14_100_page_01.mxl",
+    "mxl_idx": 10
+   },
+   "staff": {
+    "active_staff_idx": 3,
+    "aud_part": 3,
+    "aud_staff": 1,
+    "rust_part": 3
+   },
+   "meter": "4/4",
+   "expected_q": "4",
+   "aud_voice_lengths_q": {
+    "1": "9/2"
+   },
+   "rust_voice_lengths_q": {
+    "1": "4",
+    "2": "4"
+   },
+   "triggers": [
+    "aud_wrong",
+    "aud_strict",
+    "review:bar_length_mismatch"
+   ],
+   "mr_mismatch": false,
+   "repair_class": "GEOMETRY_CLUSTER",
+   "sub_cause": "thin_beam_missed",
+   "rust_strict_label": "exact_all_voices",
+   "graft_payload": null,
+   "head_counts": {
+    "aud": 4,
+    "rust": 6
+   },
+   "rest_counts": {
+    "aud": 0,
+    "rust": 2
+   },
+   "aud_pcols": [
+    [
+     "B2"
+    ],
+    [
+     "G3"
+    ],
+    [
+     "F#3"
+    ],
+    [
+     "E3"
+    ]
+   ],
+   "rust_pcols": [
+    [
+     "B2"
+    ],
+    [
+     "G3"
+    ],
+    [
+     "F#3"
+    ],
+    [
+     "E3"
+    ],
+    [
+     "F#3"
+    ],
+    [
+     "B2"
+    ]
+   ],
+   "has_tuplet": false,
+   "has_rust_beamed": true,
+   "geometry": {
+    "page": 1,
+    "bar_bbox_pt": [
+     62.06,
+     719.11,
+     182.59,
+     735.81
+    ],
+    "staff_sp": 4.17,
+    "x_pt": 161.84,
+    "y_pt": 725.21,
+    "x_norm_bar": 0.8278,
+    "x_norm_page": 0.2644,
+    "y_norm_page": 0.9157,
+    "beam_quad_thickness_pt": 1.203,
+    "beam_quad_thickness_px": 5.01,
+    "bar_beam_quad_thickness_pt": 1.203,
+    "page_beam_quad_thickness_pt": 1.08,
+    "bar_pdf_beam_count": 8,
+    "page_pdf_beam_count": 201,
+    "omr_beam_scale_px": 9.0,
+    "omr_beam_scale_extra": false,
+    "omr_page_beams": 2,
+    "omr_bar_beams": 0,
+    "y_offset_in_spaces": {
+     "mean_abs_center_sp": 1.547,
+     "min_abs_center_sp": 1.008,
+     "max_abs_center_sp": 2.086,
+     "mean_signed_center_sp": -0.539,
+     "mean_from_top_line_sp": 1.463
+    },
+    "dist_to_textrun_pt": 409.57,
+    "dist_to_textrun_vertical_pt": 409.54,
+    "dist_to_textrun_sp": 98.219,
+    "nearest_text": "dum",
+    "nearest_text_source": "omr_lyric-item",
+    "svg_heads_in_bar": 6,
+    "svg_rests_in_bar": 2,
+    "omr_flags_in_bar": 0
+   }
+  },
+  {
+   "piece": "100",
+   "page": 1,
+   "bar": {
+    "rust_pos": 13,
+    "aud_pos": 13,
+    "mxl_number_aud": "13",
+    "mxl_number_rust": "13",
+    "mxl_file": "b14_100_page_01.mxl",
+    "mxl_idx": 13
+   },
+   "staff": {
+    "active_staff_idx": 2,
+    "aud_part": 2,
+    "aud_staff": 1,
+    "rust_part": 2
+   },
+   "meter": "4/4",
+   "expected_q": "4",
+   "aud_voice_lengths_q": {
+    "1": "7/2"
+   },
+   "rust_voice_lengths_q": {
+    "1": "4"
+   },
+   "triggers": [
+    "aud_wrong",
+    "aud_strict",
+    "review:underfull_measure"
+   ],
+   "mr_mismatch": false,
+   "repair_class": "TYPE_B_MISSING_REST_SPLICE",
+   "sub_cause": "unprinted_rest",
+   "sub_causes": [
+    "unprinted_rest"
+   ],
+   "rust_strict_label": "exact_all_voices",
+   "graft_payload": {
+    "kind": "missing_rest_splice",
+    "rest_splices": [
+     {
+      "voice": "1",
+      "gap_onset_q": "0",
+      "dur_q": "1/2",
+      "rest_type": "eighth",
+      "sub_type": "unprinted_rest"
+     }
+    ]
+   }
+  },
+  {
+   "piece": "100",
+   "page": 1,
+   "bar": {
+    "rust_pos": 13,
+    "aud_pos": 13,
+    "mxl_number_aud": "13",
+    "mxl_number_rust": "13",
+    "mxl_file": "b14_100_page_01.mxl",
+    "mxl_idx": 13
+   },
+   "staff": {
+    "active_staff_idx": 3,
+    "aud_part": 3,
+    "aud_staff": 1,
+    "rust_part": 3
+   },
+   "meter": "4/4",
+   "expected_q": "4",
+   "aud_voice_lengths_q": {
+    "1": "4",
+    "2": "7/2"
+   },
+   "rust_voice_lengths_q": {
+    "1": "4",
+    "2": "4"
+   },
+   "triggers": [
+    "aud_strict"
+   ],
+   "mr_mismatch": false,
+   "repair_class": "TYPE_C_SHARED_VOICE_SPLIT",
+   "sub_cause": "pure_voice_split",
+   "rust_strict_label": "exact_all_voices",
+   "graft_payload": {
+    "kind": "shared_voice_split",
+    "voice_split_actions": [
+     {
+      "col_idx": 0,
+      "onset_q": "0",
+      "action": "unison_duplication",
+      "target_voice": "2",
+      "pitch": "B2",
+      "from_voices": [
+       "1"
+      ],
+      "target_dur_q": "1/2",
+      "target_type": "eighth"
+     },
+     {
+      "col_idx": 7,
+      "onset_q": "7/2",
+      "action": "unison_duplication",
+      "target_voice": "1",
+      "pitch": "B3",
+      "from_voices": [
+       "2"
+      ],
+      "target_dur_q": "1/2",
+      "target_type": "eighth"
+     },
+     {
+      "col_idx": 7,
+      "onset_q": "7/2",
+      "action": "unison_duplication",
+      "target_voice": "2",
+      "pitch": "A3",
+      "from_voices": [
+       "1"
+      ],
+      "target_dur_q": "1/2",
+      "target_type": "eighth"
+     }
+    ],
+    "shared_rest_duplications": [
+     {
+      "voice": "1",
+      "onset_q": "0",
+      "dur_q": "1/2",
+      "type": "eighth"
+     }
+    ],
+    "duration_edits": [],
+    "rust_voices_target": {
+     "1": [
+      {
+       "voice": "1",
+       "onset_q": "0",
+       "dur_q": "1/2",
+       "is_rest": true,
+       "is_measure_rest": false,
+       "pitches": [],
+       "type": "eighth",
+       "dots": 0,
+       "time_mod": null,
+       "beams": 0,
+       "default_x": null
+      },
+      {
+       "voice": "1",
+       "onset_q": "1/2",
+       "dur_q": "1/2",
+       "is_rest": false,
+       "is_measure_rest": false,
+       "pitches": [
+        "F#3"
+       ],
+       "type": "eighth",
+       "dots": 0,
+       "time_mod": null,
+       "beams": 0,
+       "default_x": null
+      },
+      {
+       "voice": "1",
+       "onset_q": "1",
+       "dur_q": "1/2",
+       "is_rest": false,
+       "is_measure_rest": false,
+       "pitches": [
+        "G3"
+       ],
+       "type": "eighth",
+       "dots": 0,
+       "time_mod": null,
+       "beams": 0,
+       "default_x": null
+      },
+      {
+       "voice": "1",
+       "onset_q": "3/2",
+       "dur_q": "1/2",
+       "is_rest": false,
+       "is_measure_rest": false,
+       "pitches": [
+        "A3"
+       ],
+       "type": "eighth",
+       "dots": 0,
+       "time_mod": null,
+       "beams": 0,
+       "default_x": null
+      },
+      {
+       "voice": "1",
+       "onset_q": "2",
+       "dur_q": "1/2",
+       "is_rest": false,
+       "is_measure_rest": false,
+       "pitches": [
+        "B3"
+       ],
+       "type": "eighth",
+       "dots": 0,
+       "time_mod": null,
+       "beams": 0,
+       "default_x": null
+      },
+      {
+       "voice": "1",
+       "onset_q": "5/2",
+       "dur_q": "1/2",
+       "is_rest": false,
+       "is_measure_rest": false,
+       "pitches": [
+        "B3"
+       ],
+       "type": "eighth",
+       "dots": 0,
+       "time_mod": null,
+       "beams": 0,
+       "default_x": null
+      },
+      {
+       "voice": "1",
+       "onset_q": "3",
+       "dur_q": "1/2",
+       "is_rest": false,
+       "is_measure_rest": false,
+       "pitches": [
+        "B3"
+       ],
+       "type": "eighth",
+       "dots": 0,
+       "time_mod": null,
+       "beams": 0,
+       "default_x": null
+      },
+      {
+       "voice": "1",
+       "onset_q": "7/2",
+       "dur_q": "1/2",
+       "is_rest": false,
+       "is_measure_rest": false,
+       "pitches": [
+        "B3"
+       ],
+       "type": "eighth",
+       "dots": 0,
+       "time_mod": null,
+       "beams": 0,
+       "default_x": null
+      }
+     ],
+     "2": [
+      {
+       "voice": "2",
+       "onset_q": "0",
+       "dur_q": "1/2",
+       "is_rest": false,
+       "is_measure_rest": false,
+       "pitches": [
+        "B2"
+       ],
+       "type": "eighth",
+       "dots": 0,
+       "time_mod": null,
+       "beams": 0,
+       "default_x": null
+      },
+      {
+       "voice": "2",
+       "onset_q": "1/2",
+       "dur_q": "1/2",
+       "is_rest": false,
+       "is_measure_rest": false,
+       "pitches": [
+        "F#3"
+       ],
+       "type": "eighth",
+       "dots": 0,
+       "time_mod": null,
+       "beams": 0,
+       "default_x": null
+      },
+      {
+       "voice": "2",
+       "onset_q": "1",
+       "dur_q": "1/2",
+       "is_rest": false,
+       "is_measure_rest": false,
+       "pitches": [
+        "G3"
+       ],
+       "type": "eighth",
+       "dots": 0,
+       "time_mod": null,
+       "beams": 0,
+       "default_x": null
+      },
+      {
+       "voice": "2",
+       "onset_q": "3/2",
+       "dur_q": "1/2",
+       "is_rest": false,
+       "is_measure_rest": false,
+       "pitches": [
+        "A3"
+       ],
+       "type": "eighth",
+       "dots": 0,
+       "time_mod": null,
+       "beams": 0,
+       "default_x": null
+      },
+      {
+       "voice": "2",
+       "onset_q": "2",
+       "dur_q": "1/2",
+       "is_rest": false,
+       "is_measure_rest": false,
+       "pitches": [
+        "B3"
+       ],
+       "type": "eighth",
+       "dots": 0,
+       "time_mod": null,
+       "beams": 0,
+       "default_x": null
+      },
+      {
+       "voice": "2",
+       "onset_q": "5/2",
+       "dur_q": "1/2",
+       "is_rest": false,
+       "is_measure_rest": false,
+       "pitches": [
+        "B3"
+       ],
+       "type": "eighth",
+       "dots": 0,
+       "time_mod": null,
+       "beams": 0,
+       "default_x": null
+      },
+      {
+       "voice": "2",
+       "onset_q": "3",
+       "dur_q": "1/2",
+       "is_rest": false,
+       "is_measure_rest": false,
+       "pitches": [
+        "B3"
+       ],
+       "type": "eighth",
+       "dots": 0,
+       "time_mod": null,
+       "beams": 0,
+       "default_x": null
+      },
+      {
+       "voice": "2",
+       "onset_q": "7/2",
+       "dur_q": "1/2",
+       "is_rest": false,
+       "is_measure_rest": false,
+       "pitches": [
+        "A3"
+       ],
+       "type": "eighth",
+       "dots": 0,
+       "time_mod": null,
+       "beams": 0,
+       "default_x": null
+      }
+     ]
+    }
+   }
+  },
+  {
+   "piece": "100",
+   "page": 1,
+   "bar": {
+    "rust_pos": 14,
+    "aud_pos": 14,
+    "mxl_number_aud": "14",
+    "mxl_number_rust": "14",
+    "mxl_file": "b14_100_page_01.mxl",
+    "mxl_idx": 14
+   },
+   "staff": {
+    "active_staff_idx": 3,
+    "aud_part": 3,
+    "aud_staff": 1,
+    "rust_part": 3
+   },
+   "meter": "4/4",
+   "expected_q": "4",
+   "aud_voice_lengths_q": {
+    "1": "3/2",
+    "2": "4"
+   },
+   "rust_voice_lengths_q": {
+    "1": "4",
+    "2": "4"
+   },
+   "triggers": [
+    "aud_strict",
+    "review:underfull_measure"
+   ],
+   "mr_mismatch": false,
+   "repair_class": "TYPE_C_SHARED_VOICE_SPLIT",
+   "sub_cause": "pure_voice_split",
+   "rust_strict_label": "exact_all_voices",
+   "graft_payload": {
+    "kind": "shared_voice_split",
+    "voice_split_actions": [
+     {
+      "col_idx": 1,
+      "onset_q": "2",
+      "action": "unison_duplication",
+      "target_voice": "1",
+      "pitch": "D4",
+      "from_voices": [
+       "2"
+      ],
+      "target_dur_q": "2",
+      "target_type": "half"
+     }
+    ],
+    "shared_rest_duplications": [
+     {
+      "voice": "1",
+      "onset_q": "3/2",
+      "dur_q": "1/2",
+      "type": "eighth"
+     }
+    ],
+    "duration_edits": [],
+    "rust_voices_target": {
+     "1": [
+      {
+       "voice": "1",
+       "onset_q": "0",
+       "dur_q": "3/2",
+       "is_rest": false,
+       "is_measure_rest": false,
+       "pitches": [
+        "B3"
+       ],
+       "type": "quarter",
+       "dots": 1,
+       "time_mod": null,
+       "beams": 0,
+       "default_x": null
+      },
+      {
+       "voice": "1",
+       "onset_q": "3/2",
+       "dur_q": "1/2",
+       "is_rest": true,
+       "is_measure_rest": false,
+       "pitches": [],
+       "type": "eighth",
+       "dots": 0,
+       "time_mod": null,
+       "beams": 0,
+       "default_x": null
+      },
+      {
+       "voice": "1",
+       "onset_q": "2",
+       "dur_q": "2",
+       "is_rest": false,
+       "is_measure_rest": false,
+       "pitches": [
+        "D4"
+       ],
+       "type": "half",
+       "dots": 0,
+       "time_mod": null,
+       "beams": 0,
+       "default_x": null
+      }
+     ],
+     "2": [
+      {
+       "voice": "2",
+       "onset_q": "0",
+       "dur_q": "3/2",
+       "is_rest": false,
+       "is_measure_rest": false,
+       "pitches": [
+        "G3"
+       ],
+       "type": "quarter",
+       "dots": 1,
+       "time_mod": null,
+       "beams": 0,
+       "default_x": null
+      },
+      {
+       "voice": "2",
+       "onset_q": "3/2",
+       "dur_q": "1/2",
+       "is_rest": true,
+       "is_measure_rest": false,
+       "pitches": [],
+       "type": "eighth",
+       "dots": 0,
+       "time_mod": null,
+       "beams": 0,
+       "default_x": null
+      },
+      {
+       "voice": "2",
+       "onset_q": "2",
+       "dur_q": "2",
+       "is_rest": false,
+       "is_measure_rest": false,
+       "pitches": [
+        "G#3"
+       ],
+       "type": "half",
+       "dots": 0,
+       "time_mod": null,
+       "beams": 0,
+       "default_x": null
+      }
+     ]
+    }
+   }
+  }
+ ]
+}

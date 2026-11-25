@@ -1,0 +1,2445 @@
+{
+ "records": [
+  {
+   "piece": "hard",
+   "page": 6,
+   "bar": {
+    "rust_pos": 323,
+    "aud_pos": 316,
+    "mxl_number_aud": "51",
+    "mxl_number_rust": "51",
+    "mxl_file": "b14_hard_page_06.mxl",
+    "mxl_idx": 54
+   },
+   "staff": {
+    "active_staff_idx": 1,
+    "aud_part": 1,
+    "aud_staff": 1,
+    "rust_part": 3
+   },
+   "meter": "9/8",
+   "expected_q": "9/2",
+   "aud_voice_lengths_q": {
+    "1": "3",
+    "2": "2",
+    "3": "1"
+   },
+   "rust_voice_lengths_q": {
+    "1": "9/2",
+    "2": "9/2"
+   },
+   "triggers": [
+    "aud_wrong",
+    "aud_strict",
+    "review:underfull_measure"
+   ],
+   "mr_mismatch": false,
+   "repair_class": "TYPE_C_SHARED_VOICE_SPLIT",
+   "sub_cause": "voice_split_with_duration_graft",
+   "rust_strict_label": "exact_all_voices",
+   "graft_payload": {
+    "kind": "shared_voice_split",
+    "voice_split_actions": [
+     {
+      "col_idx": 1,
+      "onset_q": "3",
+      "action": "unison_duplication",
+      "target_voice": "1",
+      "pitch": "Bb4",
+      "from_voices": [
+       "3"
+      ],
+      "target_dur_q": "3/2",
+      "target_type": "quarter"
+     },
+     {
+      "col_idx": 1,
+      "onset_q": "3",
+      "action": "unison_duplication",
+      "target_voice": "1",
+      "pitch": "Eb5",
+      "from_voices": [
+       "3"
+      ],
+      "target_dur_q": "3/2",
+      "target_type": "quarter"
+     }
+    ],
+    "shared_rest_duplications": [
+     {
+      "voice": "2",
+      "onset_q": "0",
+      "dur_q": "3/2",
+      "type": "quarter"
+     }
+    ],
+    "duration_edits": [
+     {
+      "col_idx": 0,
+      "voice": "2",
+      "pitch": "Bb4",
+      "onset_q": "3/2",
+      "aud_dur_q": "1",
+      "rust_dur_q": "3/2",
+      "sub_cause": "missed_augmentation_dot"
+     },
+     {
+      "col_idx": 1,
+      "voice": "2",
+      "pitch": "G4",
+      "onset_q": "3",
+      "aud_dur_q": "1",
+      "rust_dur_q": "3/2",
+      "sub_cause": "missed_augmentation_dot"
+     }
+    ],
+    "rust_voices_target": {
+     "1": [
+      {
+       "voice": "1",
+       "onset_q": "0",
+       "dur_q": "3/2",
+       "is_rest": true,
+       "is_measure_rest": false,
+       "pitches": [],
+       "type": "quarter",
+       "dots": 1,
+       "time_mod": null,
+       "beams": 0,
+       "default_x": null
+      },
+      {
+       "voice": "1",
+       "onset_q": "3/2",
+       "dur_q": "3/2",
+       "is_rest": false,
+       "is_measure_rest": false,
+       "pitches": [
+        "Bb4"
+       ],
+       "type": "quarter",
+       "dots": 1,
+       "time_mod": null,
+       "beams": 0,
+       "default_x": null
+      },
+      {
+       "voice": "1",
+       "onset_q": "3",
+       "dur_q": "3/2",
+       "is_rest": false,
+       "is_measure_rest": false,
+       "pitches": [
+        "Bb4",
+        "Eb5"
+       ],
+       "type": "quarter",
+       "dots": 1,
+       "time_mod": null,
+       "beams": 0,
+       "default_x": null
+      }
+     ],
+     "2": [
+      {
+       "voice": "2",
+       "onset_q": "0",
+       "dur_q": "3/2",
+       "is_rest": true,
+       "is_measure_rest": false,
+       "pitches": [],
+       "type": "quarter",
+       "dots": 1,
+       "time_mod": null,
+       "beams": 0,
+       "default_x": null
+      },
+      {
+       "voice": "2",
+       "onset_q": "3/2",
+       "dur_q": "3/2",
+       "is_rest": false,
+       "is_measure_rest": false,
+       "pitches": [
+        "Bb4"
+       ],
+       "type": "quarter",
+       "dots": 1,
+       "time_mod": null,
+       "beams": 0,
+       "default_x": null
+      },
+      {
+       "voice": "2",
+       "onset_q": "3",
+       "dur_q": "3/2",
+       "is_rest": false,
+       "is_measure_rest": false,
+       "pitches": [
+        "G4"
+       ],
+       "type": "quarter",
+       "dots": 1,
+       "time_mod": null,
+       "beams": 0,
+       "default_x": null
+      }
+     ]
+    }
+   }
+  },
+  {
+   "piece": "hard",
+   "page": 6,
+   "bar": {
+    "rust_pos": 323,
+    "aud_pos": 316,
+    "mxl_number_aud": "51",
+    "mxl_number_rust": "51",
+    "mxl_file": "b14_hard_page_06.mxl",
+    "mxl_idx": 54
+   },
+   "staff": {
+    "active_staff_idx": 2,
+    "aud_part": 2,
+    "aud_staff": 1,
+    "rust_part": 4
+   },
+   "meter": "9/8",
+   "expected_q": "9/2",
+   "aud_voice_lengths_q": {
+    "1": "9/2",
+    "2": "3"
+   },
+   "rust_voice_lengths_q": {
+    "1": "9/2",
+    "2": "9/2"
+   },
+   "triggers": [
+    "aud_strict"
+   ],
+   "mr_mismatch": false,
+   "repair_class": "TYPE_B_MISSING_REST_SPLICE",
+   "sub_cause": "shared_mid_staff_rest",
+   "sub_causes": [
+    "shared_mid_staff_rest"
+   ],
+   "rust_strict_label": "exact_all_voices",
+   "graft_payload": {
+    "kind": "missing_rest_splice",
+    "rest_splices": [
+     {
+      "voice": "2",
+      "gap_onset_q": "0",
+      "dur_q": "3/2",
+      "rest_type": "quarter",
+      "sub_type": "shared_mid_staff_rest"
+     }
+    ]
+   }
+  },
+  {
+   "piece": "hard",
+   "page": 6,
+   "bar": {
+    "rust_pos": 324,
+    "aud_pos": 317,
+    "mxl_number_aud": "52",
+    "mxl_number_rust": "52",
+    "mxl_file": "b14_hard_page_06.mxl",
+    "mxl_idx": 55
+   },
+   "staff": {
+    "active_staff_idx": 1,
+    "aud_part": 1,
+    "aud_staff": 1,
+    "rust_part": 3
+   },
+   "meter": "9/8",
+   "expected_q": "9/2",
+   "aud_voice_lengths_q": {
+    "1": "4",
+    "2": "4"
+   },
+   "rust_voice_lengths_q": {
+    "1": "9/2",
+    "2": "9/2"
+   },
+   "triggers": [
+    "aud_wrong",
+    "aud_strict",
+    "review:underfull_measure"
+   ],
+   "mr_mismatch": false,
+   "repair_class": "TYPE_A_DURATION_GRAFT",
+   "sub_cause": "missed_augmentation_dot",
+   "sub_causes": [
+    "missed_augmentation_dot"
+   ],
+   "rust_strict_label": "exact_all_voices",
+   "graft_payload": {
+    "kind": "duration_graft",
+    "edits": [
+     {
+      "voice": "1",
+      "event_idx": 2,
+      "onset_q": "3",
+      "aud_onset_q": "3",
+      "is_rest": false,
+      "pitches": [
+       "C5",
+       "F5"
+      ],
+      "aud_dur_q": "1",
+      "aud_type": "quarter",
+      "aud_dots": 0,
+      "aud_tuplet": null,
+      "rust_dur_q": "3/2",
+      "rust_type": "quarter",
+      "rust_dots": 1,
+      "rust_tuplet": null,
+      "sub_cause": "missed_augmentation_dot"
+     },
+     {
+      "voice": "2",
+      "event_idx": 2,
+      "onset_q": "3",
+      "aud_onset_q": "3",
+      "is_rest": false,
+      "pitches": [
+       "Ab4"
+      ],
+      "aud_dur_q": "1",
+      "aud_type": "quarter",
+      "aud_dots": 0,
+      "aud_tuplet": null,
+      "rust_dur_q": "3/2",
+      "rust_type": "quarter",
+      "rust_dots": 1,
+      "rust_tuplet": null,
+      "sub_cause": "missed_augmentation_dot"
+     }
+    ]
+   }
+  },
+  {
+   "piece": "hard",
+   "page": 6,
+   "bar": {
+    "rust_pos": 325,
+    "aud_pos": 318,
+    "mxl_number_aud": "53",
+    "mxl_number_rust": "53",
+    "mxl_file": "b14_hard_page_06.mxl",
+    "mxl_idx": 56
+   },
+   "staff": {
+    "active_staff_idx": 1,
+    "aud_part": 1,
+    "aud_staff": 1,
+    "rust_part": 3
+   },
+   "meter": "9/8",
+   "expected_q": "9/2",
+   "aud_voice_lengths_q": {
+    "1": "9/2",
+    "2": "3"
+   },
+   "rust_voice_lengths_q": {
+    "1": "9/2",
+    "2": "9/2"
+   },
+   "triggers": [
+    "aud_strict",
+    "review:underfull_measure"
+   ],
+   "mr_mismatch": false,
+   "repair_class": "TYPE_B_MISSING_REST_SPLICE",
+   "sub_cause": "shared_mid_staff_rest",
+   "sub_causes": [
+    "shared_mid_staff_rest"
+   ],
+   "rust_strict_label": "exact_all_voices",
+   "graft_payload": {
+    "kind": "missing_rest_splice",
+    "rest_splices": [
+     {
+      "voice": "2",
+      "gap_onset_q": "3",
+      "dur_q": "3/2",
+      "rest_type": "quarter",
+      "sub_type": "shared_mid_staff_rest"
+     }
+    ]
+   }
+  },
+  {
+   "piece": "hard",
+   "page": 6,
+   "bar": {
+    "rust_pos": 325,
+    "aud_pos": 318,
+    "mxl_number_aud": "53",
+    "mxl_number_rust": "53",
+    "mxl_file": "b14_hard_page_06.mxl",
+    "mxl_idx": 56
+   },
+   "staff": {
+    "active_staff_idx": 2,
+    "aud_part": 2,
+    "aud_staff": 1,
+    "rust_part": 4
+   },
+   "meter": "9/8",
+   "expected_q": "9/2",
+   "aud_voice_lengths_q": {
+    "1": "3",
+    "2": "9/2"
+   },
+   "rust_voice_lengths_q": {
+    "1": "9/2",
+    "2": "9/2"
+   },
+   "triggers": [
+    "aud_strict",
+    "review:underfull_measure"
+   ],
+   "mr_mismatch": false,
+   "repair_class": "TYPE_B_MISSING_REST_SPLICE",
+   "sub_cause": "shared_mid_staff_rest",
+   "sub_causes": [
+    "shared_mid_staff_rest"
+   ],
+   "rust_strict_label": "exact_all_voices",
+   "graft_payload": {
+    "kind": "missing_rest_splice",
+    "rest_splices": [
+     {
+      "voice": "1",
+      "gap_onset_q": "3",
+      "dur_q": "3/2",
+      "rest_type": "quarter",
+      "sub_type": "shared_mid_staff_rest"
+     }
+    ]
+   }
+  },
+  {
+   "piece": "hard",
+   "page": 6,
+   "bar": {
+    "rust_pos": 326,
+    "aud_pos": 319,
+    "mxl_number_aud": "54",
+    "mxl_number_rust": "54",
+    "mxl_file": "b14_hard_page_06.mxl",
+    "mxl_idx": 57
+   },
+   "staff": {
+    "active_staff_idx": 1,
+    "aud_part": 1,
+    "aud_staff": 1,
+    "rust_part": 3
+   },
+   "meter": "9/8",
+   "expected_q": "9/2",
+   "aud_voice_lengths_q": {
+    "1": "1/4",
+    "2": "1/4"
+   },
+   "rust_voice_lengths_q": {
+    "1": "9/2"
+   },
+   "triggers": [
+    "aud_wrong",
+    "aud_strict"
+   ],
+   "mr_mismatch": false,
+   "repair_class": "GEOMETRY_CLUSTER",
+   "sub_cause": "rest_cluster",
+   "rust_strict_label": "exact_all_voices",
+   "graft_payload": null,
+   "head_counts": {
+    "aud": 0,
+    "rust": 0
+   },
+   "rest_counts": {
+    "aud": 2,
+    "rust": 1
+   },
+   "aud_pcols": [],
+   "rust_pcols": [],
+   "has_tuplet": false,
+   "has_rust_beamed": false,
+   "geometry": {
+    "page": 6,
+    "bar_bbox_pt": [
+     290.39,
+     482.18,
+     314.51,
+     498.5
+    ],
+    "staff_sp": 4.08,
+    "x_pt": 302.62,
+    "y_pt": 490.34,
+    "x_norm_bar": 0.5073,
+    "x_norm_page": 0.5086,
+    "y_norm_page": 0.5824,
+    "beam_quad_thickness_pt": null,
+    "beam_quad_thickness_px": null,
+    "bar_beam_quad_thickness_pt": null,
+    "page_beam_quad_thickness_pt": null,
+    "bar_pdf_beam_count": 0,
+    "page_pdf_beam_count": 0,
+    "omr_beam_scale_px": 10.0,
+    "omr_beam_scale_extra": true,
+    "omr_page_beams": 0,
+    "omr_bar_beams": 0,
+    "y_offset_in_spaces": {
+     "mean_abs_center_sp": 0.0,
+     "min_abs_center_sp": 0.0,
+     "max_abs_center_sp": 0.0,
+     "mean_signed_center_sp": 0.0,
+     "mean_from_top_line_sp": 2.0
+    },
+    "dist_to_textrun_pt": 24.66,
+    "dist_to_textrun_vertical_pt": 24.66,
+    "dist_to_textrun_sp": 6.045,
+    "nearest_text": "ni",
+    "nearest_text_source": "pdf_text",
+    "svg_heads_in_bar": 0,
+    "svg_rests_in_bar": 1,
+    "omr_flags_in_bar": 0
+   }
+  },
+  {
+   "piece": "hard",
+   "page": 6,
+   "bar": {
+    "rust_pos": 326,
+    "aud_pos": 319,
+    "mxl_number_aud": "54",
+    "mxl_number_rust": "54",
+    "mxl_file": "b14_hard_page_06.mxl",
+    "mxl_idx": 57
+   },
+   "staff": {
+    "active_staff_idx": 2,
+    "aud_part": 2,
+    "aud_staff": 1,
+    "rust_part": 4
+   },
+   "meter": "9/8",
+   "expected_q": "9/2",
+   "aud_voice_lengths_q": {
+    "1": "1/4"
+   },
+   "rust_voice_lengths_q": {
+    "1": "9/2"
+   },
+   "triggers": [
+    "aud_wrong",
+    "aud_strict"
+   ],
+   "mr_mismatch": false,
+   "repair_class": "TYPE_A_DURATION_GRAFT",
+   "sub_cause": "measure_rest_duration_mismatch",
+   "sub_causes": [
+    "measure_rest_duration_mismatch"
+   ],
+   "rust_strict_label": "exact_all_voices",
+   "graft_payload": {
+    "kind": "duration_graft",
+    "edits": [
+     {
+      "voice": "1",
+      "event_idx": 0,
+      "onset_q": "0",
+      "is_rest": true,
+      "pitches": [],
+      "aud_dur_q": "1/4",
+      "aud_type": "measure-rest",
+      "aud_dots": 0,
+      "aud_tuplet": null,
+      "rust_dur_q": "9/2",
+      "rust_type": "measure-rest",
+      "rust_dots": 0,
+      "rust_tuplet": null
+     }
+    ]
+   }
+  },
+  {
+   "piece": "hard",
+   "page": 6,
+   "bar": {
+    "rust_pos": 327,
+    "aud_pos": 320,
+    "mxl_number_aud": "55",
+    "mxl_number_rust": "55",
+    "mxl_file": "b14_hard_page_06.mxl",
+    "mxl_idx": 58
+   },
+   "staff": {
+    "active_staff_idx": 1,
+    "aud_part": 1,
+    "aud_staff": 1,
+    "rust_part": 3
+   },
+   "meter": "9/8",
+   "expected_q": "9/2",
+   "aud_voice_lengths_q": {
+    "1": "9/2",
+    "2": "1"
+   },
+   "rust_voice_lengths_q": {
+    "1": "9/2",
+    "2": "9/2"
+   },
+   "triggers": [
+    "aud_strict"
+   ],
+   "mr_mismatch": false,
+   "repair_class": "TYPE_C_SHARED_VOICE_SPLIT",
+   "sub_cause": "voice_split_with_duration_graft",
+   "rust_strict_label": "exact_all_voices",
+   "graft_payload": {
+    "kind": "shared_voice_split",
+    "voice_split_actions": [],
+    "shared_rest_duplications": [
+     {
+      "voice": "2",
+      "onset_q": "0",
+      "dur_q": "3/2",
+      "type": "quarter"
+     },
+     {
+      "voice": "2",
+      "onset_q": "3/2",
+      "dur_q": "3/2",
+      "type": "quarter"
+     }
+    ],
+    "duration_edits": [
+     {
+      "col_idx": 0,
+      "voice": "2",
+      "pitch": "G4",
+      "onset_q": "3",
+      "aud_dur_q": "1",
+      "rust_dur_q": "3/2",
+      "sub_cause": "missed_augmentation_dot"
+     }
+    ],
+    "rust_voices_target": {
+     "1": [
+      {
+       "voice": "1",
+       "onset_q": "0",
+       "dur_q": "3/2",
+       "is_rest": true,
+       "is_measure_rest": false,
+       "pitches": [],
+       "type": "quarter",
+       "dots": 1,
+       "time_mod": null,
+       "beams": 0,
+       "default_x": null
+      },
+      {
+       "voice": "1",
+       "onset_q": "3/2",
+       "dur_q": "3/2",
+       "is_rest": true,
+       "is_measure_rest": false,
+       "pitches": [],
+       "type": "quarter",
+       "dots": 1,
+       "time_mod": null,
+       "beams": 0,
+       "default_x": null
+      },
+      {
+       "voice": "1",
+       "onset_q": "3",
+       "dur_q": "3/2",
+       "is_rest": false,
+       "is_measure_rest": false,
+       "pitches": [
+        "G4"
+       ],
+       "type": "quarter",
+       "dots": 1,
+       "time_mod": null,
+       "beams": 0,
+       "default_x": null
+      }
+     ],
+     "2": [
+      {
+       "voice": "2",
+       "onset_q": "0",
+       "dur_q": "3/2",
+       "is_rest": true,
+       "is_measure_rest": false,
+       "pitches": [],
+       "type": "quarter",
+       "dots": 1,
+       "time_mod": null,
+       "beams": 0,
+       "default_x": null
+      },
+      {
+       "voice": "2",
+       "onset_q": "3/2",
+       "dur_q": "3/2",
+       "is_rest": true,
+       "is_measure_rest": false,
+       "pitches": [],
+       "type": "quarter",
+       "dots": 1,
+       "time_mod": null,
+       "beams": 0,
+       "default_x": null
+      },
+      {
+       "voice": "2",
+       "onset_q": "3",
+       "dur_q": "3/2",
+       "is_rest": false,
+       "is_measure_rest": false,
+       "pitches": [
+        "G4"
+       ],
+       "type": "quarter",
+       "dots": 1,
+       "time_mod": null,
+       "beams": 0,
+       "default_x": null
+      }
+     ]
+    }
+   }
+  },
+  {
+   "piece": "hard",
+   "page": 6,
+   "bar": {
+    "rust_pos": 327,
+    "aud_pos": 320,
+    "mxl_number_aud": "55",
+    "mxl_number_rust": "55",
+    "mxl_file": "b14_hard_page_06.mxl",
+    "mxl_idx": 58
+   },
+   "staff": {
+    "active_staff_idx": 2,
+    "aud_part": 2,
+    "aud_staff": 1,
+    "rust_part": 4
+   },
+   "meter": "9/8",
+   "expected_q": "9/2",
+   "aud_voice_lengths_q": {
+    "1": "9/2",
+    "2": "3/2"
+   },
+   "rust_voice_lengths_q": {
+    "1": "9/2",
+    "2": "9/2"
+   },
+   "triggers": [
+    "aud_strict"
+   ],
+   "mr_mismatch": false,
+   "repair_class": "TYPE_B_MISSING_REST_SPLICE",
+   "sub_cause": "shared_mid_staff_rest",
+   "sub_causes": [
+    "shared_mid_staff_rest"
+   ],
+   "rust_strict_label": "exact_all_voices",
+   "graft_payload": {
+    "kind": "missing_rest_splice",
+    "rest_splices": [
+     {
+      "voice": "2",
+      "gap_onset_q": "0",
+      "dur_q": "3/2",
+      "rest_type": "quarter",
+      "sub_type": "shared_mid_staff_rest"
+     },
+     {
+      "voice": "2",
+      "gap_onset_q": "3/2",
+      "dur_q": "3/2",
+      "rest_type": "quarter",
+      "sub_type": "shared_mid_staff_rest"
+     }
+    ]
+   }
+  },
+  {
+   "piece": "hard",
+   "page": 6,
+   "bar": {
+    "rust_pos": 328,
+    "aud_pos": 321,
+    "mxl_number_aud": "56",
+    "mxl_number_rust": "56",
+    "mxl_file": "b14_hard_page_06.mxl",
+    "mxl_idx": 59
+   },
+   "staff": {
+    "active_staff_idx": 1,
+    "aud_part": 1,
+    "aud_staff": 1,
+    "rust_part": 3
+   },
+   "meter": "9/8",
+   "expected_q": "9/2",
+   "aud_voice_lengths_q": {
+    "1": "4",
+    "2": "4"
+   },
+   "rust_voice_lengths_q": {
+    "1": "9/2",
+    "2": "9/2"
+   },
+   "triggers": [
+    "aud_wrong",
+    "aud_strict",
+    "review:underfull_measure"
+   ],
+   "mr_mismatch": false,
+   "repair_class": "TYPE_A_DURATION_GRAFT",
+   "sub_cause": "missed_augmentation_dot",
+   "sub_causes": [
+    "missed_augmentation_dot"
+   ],
+   "rust_strict_label": "exact_all_voices",
+   "graft_payload": {
+    "kind": "duration_graft",
+    "edits": [
+     {
+      "voice": "1",
+      "event_idx": 1,
+      "onset_q": "3",
+      "aud_onset_q": "3",
+      "is_rest": false,
+      "pitches": [
+       "Bb4"
+      ],
+      "aud_dur_q": "1",
+      "aud_type": "quarter",
+      "aud_dots": 0,
+      "aud_tuplet": null,
+      "rust_dur_q": "3/2",
+      "rust_type": "quarter",
+      "rust_dots": 1,
+      "rust_tuplet": null,
+      "sub_cause": "missed_augmentation_dot"
+     },
+     {
+      "voice": "2",
+      "event_idx": 1,
+      "onset_q": "3",
+      "aud_onset_q": "3",
+      "is_rest": false,
+      "pitches": [
+       "G4"
+      ],
+      "aud_dur_q": "1",
+      "aud_type": "quarter",
+      "aud_dots": 0,
+      "aud_tuplet": null,
+      "rust_dur_q": "3/2",
+      "rust_type": "quarter",
+      "rust_dots": 1,
+      "rust_tuplet": null,
+      "sub_cause": "missed_augmentation_dot"
+     }
+    ]
+   }
+  },
+  {
+   "piece": "hard",
+   "page": 6,
+   "bar": {
+    "rust_pos": 331,
+    "aud_pos": 324,
+    "mxl_number_aud": "59",
+    "mxl_number_rust": "59",
+    "mxl_file": "b14_hard_page_06.mxl",
+    "mxl_idx": 62
+   },
+   "staff": {
+    "active_staff_idx": 1,
+    "aud_part": 1,
+    "aud_staff": 1,
+    "rust_part": 3
+   },
+   "meter": "9/8",
+   "expected_q": "9/2",
+   "aud_voice_lengths_q": {
+    "1": "9/2",
+    "2": "1",
+    "3": "1"
+   },
+   "rust_voice_lengths_q": {
+    "1": "9/2",
+    "2": "9/2"
+   },
+   "triggers": [
+    "aud_strict",
+    "review:underfull_measure"
+   ],
+   "mr_mismatch": false,
+   "repair_class": "TYPE_C_SHARED_VOICE_SPLIT",
+   "sub_cause": "voice_split_with_duration_graft",
+   "rust_strict_label": "exact_all_voices",
+   "graft_payload": {
+    "kind": "shared_voice_split",
+    "voice_split_actions": [
+     {
+      "col_idx": 1,
+      "onset_q": "3",
+      "action": "unison_duplication",
+      "target_voice": "2",
+      "pitch": "Eb4",
+      "from_voices": [
+       "3"
+      ],
+      "target_dur_q": "3/2",
+      "target_type": "quarter"
+     }
+    ],
+    "shared_rest_duplications": [
+     {
+      "voice": "2",
+      "onset_q": "3/2",
+      "dur_q": "3/2",
+      "type": "quarter"
+     }
+    ],
+    "duration_edits": [
+     {
+      "col_idx": 0,
+      "voice": "2",
+      "pitch": "Eb4",
+      "onset_q": "0",
+      "aud_dur_q": "1",
+      "rust_dur_q": "3/2",
+      "sub_cause": "missed_augmentation_dot"
+     }
+    ],
+    "rust_voices_target": {
+     "1": [
+      {
+       "voice": "1",
+       "onset_q": "0",
+       "dur_q": "3/2",
+       "is_rest": false,
+       "is_measure_rest": false,
+       "pitches": [
+        "G4"
+       ],
+       "type": "quarter",
+       "dots": 1,
+       "time_mod": null,
+       "beams": 0,
+       "default_x": null
+      },
+      {
+       "voice": "1",
+       "onset_q": "3/2",
+       "dur_q": "3/2",
+       "is_rest": true,
+       "is_measure_rest": false,
+       "pitches": [],
+       "type": "quarter",
+       "dots": 1,
+       "time_mod": null,
+       "beams": 0,
+       "default_x": null
+      },
+      {
+       "voice": "1",
+       "onset_q": "3",
+       "dur_q": "3/2",
+       "is_rest": false,
+       "is_measure_rest": false,
+       "pitches": [
+        "G4"
+       ],
+       "type": "quarter",
+       "dots": 1,
+       "time_mod": null,
+       "beams": 0,
+       "default_x": null
+      }
+     ],
+     "2": [
+      {
+       "voice": "2",
+       "onset_q": "0",
+       "dur_q": "3/2",
+       "is_rest": false,
+       "is_measure_rest": false,
+       "pitches": [
+        "Eb4"
+       ],
+       "type": "quarter",
+       "dots": 1,
+       "time_mod": null,
+       "beams": 0,
+       "default_x": null
+      },
+      {
+       "voice": "2",
+       "onset_q": "3/2",
+       "dur_q": "3/2",
+       "is_rest": true,
+       "is_measure_rest": false,
+       "pitches": [],
+       "type": "quarter",
+       "dots": 1,
+       "time_mod": null,
+       "beams": 0,
+       "default_x": null
+      },
+      {
+       "voice": "2",
+       "onset_q": "3",
+       "dur_q": "3/2",
+       "is_rest": false,
+       "is_measure_rest": false,
+       "pitches": [
+        "Eb4"
+       ],
+       "type": "quarter",
+       "dots": 1,
+       "time_mod": null,
+       "beams": 0,
+       "default_x": null
+      }
+     ]
+    }
+   }
+  },
+  {
+   "piece": "hard",
+   "page": 6,
+   "bar": {
+    "rust_pos": 331,
+    "aud_pos": 324,
+    "mxl_number_aud": "59",
+    "mxl_number_rust": "59",
+    "mxl_file": "b14_hard_page_06.mxl",
+    "mxl_idx": 62
+   },
+   "staff": {
+    "active_staff_idx": 2,
+    "aud_part": 2,
+    "aud_staff": 1,
+    "rust_part": 4
+   },
+   "meter": "9/8",
+   "expected_q": "9/2",
+   "aud_voice_lengths_q": {
+    "1": "3",
+    "2": "9/2"
+   },
+   "rust_voice_lengths_q": {
+    "1": "9/2",
+    "2": "9/2"
+   },
+   "triggers": [
+    "aud_strict"
+   ],
+   "mr_mismatch": false,
+   "repair_class": "TYPE_B_MISSING_REST_SPLICE",
+   "sub_cause": "shared_mid_staff_rest",
+   "sub_causes": [
+    "shared_mid_staff_rest"
+   ],
+   "rust_strict_label": "exact_all_voices",
+   "graft_payload": {
+    "kind": "missing_rest_splice",
+    "rest_splices": [
+     {
+      "voice": "1",
+      "gap_onset_q": "3/2",
+      "dur_q": "3/2",
+      "rest_type": "quarter",
+      "sub_type": "shared_mid_staff_rest"
+     }
+    ]
+   }
+  },
+  {
+   "piece": "hard",
+   "page": 6,
+   "bar": {
+    "rust_pos": 334,
+    "aud_pos": 327,
+    "mxl_number_aud": "62",
+    "mxl_number_rust": "62",
+    "mxl_file": "b14_hard_page_06.mxl",
+    "mxl_idx": 65
+   },
+   "staff": {
+    "active_staff_idx": 1,
+    "aud_part": 1,
+    "aud_staff": 1,
+    "rust_part": 3
+   },
+   "meter": "9/8",
+   "expected_q": "9/2",
+   "aud_voice_lengths_q": {
+    "1": "9/2",
+    "2": "3"
+   },
+   "rust_voice_lengths_q": {
+    "1": "9/2",
+    "2": "9/2"
+   },
+   "triggers": [
+    "aud_strict",
+    "review:underfull_measure"
+   ],
+   "mr_mismatch": false,
+   "repair_class": "TYPE_A_DURATION_GRAFT",
+   "sub_cause": "missed_augmentation_dot",
+   "sub_causes": [
+    "missed_augmentation_dot"
+   ],
+   "rust_strict_label": "exact_all_voices",
+   "graft_payload": {
+    "kind": "duration_graft",
+    "edits": [
+     {
+      "voice": "2",
+      "event_idx": 0,
+      "onset_q": "0",
+      "aud_onset_q": "0",
+      "is_rest": false,
+      "pitches": [
+       "B4",
+       "G4"
+      ],
+      "aud_dur_q": "2",
+      "aud_type": "half",
+      "aud_dots": 0,
+      "aud_tuplet": null,
+      "rust_dur_q": "3",
+      "rust_type": "half",
+      "rust_dots": 1,
+      "rust_tuplet": null,
+      "sub_cause": "missed_augmentation_dot"
+     },
+     {
+      "voice": "2",
+      "event_idx": 1,
+      "onset_q": "3",
+      "aud_onset_q": "2",
+      "is_rest": false,
+      "pitches": [
+       "B4",
+       "G4"
+      ],
+      "aud_dur_q": "1",
+      "aud_type": "quarter",
+      "aud_dots": 0,
+      "aud_tuplet": null,
+      "rust_dur_q": "3/2",
+      "rust_type": "quarter",
+      "rust_dots": 1,
+      "rust_tuplet": null,
+      "sub_cause": "missed_augmentation_dot"
+     }
+    ]
+   }
+  },
+  {
+   "piece": "hard",
+   "page": 6,
+   "bar": {
+    "rust_pos": 335,
+    "aud_pos": 328,
+    "mxl_number_aud": "63",
+    "mxl_number_rust": "63",
+    "mxl_file": "b14_hard_page_06.mxl",
+    "mxl_idx": 66
+   },
+   "staff": {
+    "active_staff_idx": 1,
+    "aud_part": 1,
+    "aud_staff": 1,
+    "rust_part": 3
+   },
+   "meter": "9/8",
+   "expected_q": "9/2",
+   "aud_voice_lengths_q": {
+    "1": "9/2",
+    "2": "5/2"
+   },
+   "rust_voice_lengths_q": {
+    "1": "9/2",
+    "2": "9/2"
+   },
+   "triggers": [
+    "aud_strict"
+   ],
+   "mr_mismatch": false,
+   "repair_class": "TYPE_C_SHARED_VOICE_SPLIT",
+   "sub_cause": "voice_split_with_duration_graft",
+   "rust_strict_label": "exact_all_voices",
+   "graft_payload": {
+    "kind": "shared_voice_split",
+    "voice_split_actions": [],
+    "shared_rest_duplications": [
+     {
+      "voice": "2",
+      "onset_q": "3/2",
+      "dur_q": "3/2",
+      "type": "quarter"
+     }
+    ],
+    "duration_edits": [
+     {
+      "col_idx": 1,
+      "voice": "2",
+      "pitch": "G4",
+      "onset_q": "3",
+      "aud_dur_q": "1",
+      "rust_dur_q": "3/2",
+      "sub_cause": "missed_augmentation_dot"
+     }
+    ],
+    "rust_voices_target": {
+     "1": [
+      {
+       "voice": "1",
+       "onset_q": "0",
+       "dur_q": "3/2",
+       "is_rest": false,
+       "is_measure_rest": false,
+       "pitches": [
+        "D5"
+       ],
+       "type": "quarter",
+       "dots": 1,
+       "time_mod": null,
+       "beams": 0,
+       "default_x": null
+      },
+      {
+       "voice": "1",
+       "onset_q": "3/2",
+       "dur_q": "3/2",
+       "is_rest": true,
+       "is_measure_rest": false,
+       "pitches": [],
+       "type": "quarter",
+       "dots": 1,
+       "time_mod": null,
+       "beams": 0,
+       "default_x": null
+      },
+      {
+       "voice": "1",
+       "onset_q": "3",
+       "dur_q": "3/2",
+       "is_rest": false,
+       "is_measure_rest": false,
+       "pitches": [
+        "G4"
+       ],
+       "type": "quarter",
+       "dots": 1,
+       "time_mod": null,
+       "beams": 0,
+       "default_x": null
+      }
+     ],
+     "2": [
+      {
+       "voice": "2",
+       "onset_q": "0",
+       "dur_q": "3/2",
+       "is_rest": false,
+       "is_measure_rest": false,
+       "pitches": [
+        "B4",
+        "G4"
+       ],
+       "type": "quarter",
+       "dots": 1,
+       "time_mod": null,
+       "beams": 0,
+       "default_x": null
+      },
+      {
+       "voice": "2",
+       "onset_q": "3/2",
+       "dur_q": "3/2",
+       "is_rest": true,
+       "is_measure_rest": false,
+       "pitches": [],
+       "type": "quarter",
+       "dots": 1,
+       "time_mod": null,
+       "beams": 0,
+       "default_x": null
+      },
+      {
+       "voice": "2",
+       "onset_q": "3",
+       "dur_q": "3/2",
+       "is_rest": false,
+       "is_measure_rest": false,
+       "pitches": [
+        "G4"
+       ],
+       "type": "quarter",
+       "dots": 1,
+       "time_mod": null,
+       "beams": 0,
+       "default_x": null
+      }
+     ]
+    }
+   }
+  },
+  {
+   "piece": "hard",
+   "page": 6,
+   "bar": {
+    "rust_pos": 335,
+    "aud_pos": 328,
+    "mxl_number_aud": "63",
+    "mxl_number_rust": "63",
+    "mxl_file": "b14_hard_page_06.mxl",
+    "mxl_idx": 66
+   },
+   "staff": {
+    "active_staff_idx": 2,
+    "aud_part": 2,
+    "aud_staff": 1,
+    "rust_part": 4
+   },
+   "meter": "9/8",
+   "expected_q": "9/2",
+   "aud_voice_lengths_q": {
+    "1": "3",
+    "2": "9/2"
+   },
+   "rust_voice_lengths_q": {
+    "1": "9/2",
+    "2": "9/2"
+   },
+   "triggers": [
+    "aud_strict"
+   ],
+   "mr_mismatch": false,
+   "repair_class": "TYPE_B_MISSING_REST_SPLICE",
+   "sub_cause": "shared_mid_staff_rest",
+   "sub_causes": [
+    "shared_mid_staff_rest"
+   ],
+   "rust_strict_label": "exact_all_voices",
+   "graft_payload": {
+    "kind": "missing_rest_splice",
+    "rest_splices": [
+     {
+      "voice": "1",
+      "gap_onset_q": "3/2",
+      "dur_q": "3/2",
+      "rest_type": "quarter",
+      "sub_type": "shared_mid_staff_rest"
+     }
+    ]
+   }
+  },
+  {
+   "piece": "hard",
+   "page": 6,
+   "bar": {
+    "rust_pos": 336,
+    "aud_pos": 329,
+    "mxl_number_aud": "64",
+    "mxl_number_rust": "64",
+    "mxl_file": "b14_hard_page_06.mxl",
+    "mxl_idx": 67
+   },
+   "staff": {
+    "active_staff_idx": 1,
+    "aud_part": 1,
+    "aud_staff": 1,
+    "rust_part": 3
+   },
+   "meter": "9/8",
+   "expected_q": "9/2",
+   "aud_voice_lengths_q": {
+    "1": "4",
+    "2": "4"
+   },
+   "rust_voice_lengths_q": {
+    "1": "9/2",
+    "2": "9/2"
+   },
+   "triggers": [
+    "aud_wrong",
+    "aud_strict",
+    "review:underfull_measure"
+   ],
+   "mr_mismatch": false,
+   "repair_class": "TYPE_A_DURATION_GRAFT",
+   "sub_cause": "missed_augmentation_dot",
+   "sub_causes": [
+    "missed_augmentation_dot"
+   ],
+   "rust_strict_label": "exact_all_voices",
+   "graft_payload": {
+    "kind": "duration_graft",
+    "edits": [
+     {
+      "voice": "1",
+      "event_idx": 1,
+      "onset_q": "3",
+      "aud_onset_q": "3",
+      "is_rest": false,
+      "pitches": [
+       "B4"
+      ],
+      "aud_dur_q": "1",
+      "aud_type": "quarter",
+      "aud_dots": 0,
+      "aud_tuplet": null,
+      "rust_dur_q": "3/2",
+      "rust_type": "quarter",
+      "rust_dots": 1,
+      "rust_tuplet": null,
+      "sub_cause": "missed_augmentation_dot"
+     },
+     {
+      "voice": "2",
+      "event_idx": 1,
+      "onset_q": "3",
+      "aud_onset_q": "3",
+      "is_rest": false,
+      "pitches": [
+       "G4"
+      ],
+      "aud_dur_q": "1",
+      "aud_type": "quarter",
+      "aud_dots": 0,
+      "aud_tuplet": null,
+      "rust_dur_q": "3/2",
+      "rust_type": "quarter",
+      "rust_dots": 1,
+      "rust_tuplet": null,
+      "sub_cause": "missed_augmentation_dot"
+     }
+    ]
+   }
+  },
+  {
+   "piece": "hard",
+   "page": 6,
+   "bar": {
+    "rust_pos": 339,
+    "aud_pos": 332,
+    "mxl_number_aud": "67",
+    "mxl_number_rust": "67",
+    "mxl_file": "b14_hard_page_06.mxl",
+    "mxl_idx": 70
+   },
+   "staff": {
+    "active_staff_idx": 1,
+    "aud_part": 1,
+    "aud_staff": 1,
+    "rust_part": 3
+   },
+   "meter": "9/8",
+   "expected_q": "9/2",
+   "aud_voice_lengths_q": {
+    "1": "9/2",
+    "2": "3"
+   },
+   "rust_voice_lengths_q": {
+    "1": "9/2",
+    "2": "9/2"
+   },
+   "triggers": [
+    "aud_strict"
+   ],
+   "mr_mismatch": false,
+   "repair_class": "TYPE_B_MISSING_REST_SPLICE",
+   "sub_cause": "shared_mid_staff_rest",
+   "sub_causes": [
+    "shared_mid_staff_rest"
+   ],
+   "rust_strict_label": "exact_all_voices",
+   "graft_payload": {
+    "kind": "missing_rest_splice",
+    "rest_splices": [
+     {
+      "voice": "2",
+      "gap_onset_q": "3/2",
+      "dur_q": "3/2",
+      "rest_type": "quarter",
+      "sub_type": "shared_mid_staff_rest"
+     }
+    ]
+   }
+  },
+  {
+   "piece": "hard",
+   "page": 6,
+   "bar": {
+    "rust_pos": 339,
+    "aud_pos": 332,
+    "mxl_number_aud": "67",
+    "mxl_number_rust": "67",
+    "mxl_file": "b14_hard_page_06.mxl",
+    "mxl_idx": 70
+   },
+   "staff": {
+    "active_staff_idx": 2,
+    "aud_part": 2,
+    "aud_staff": 1,
+    "rust_part": 4
+   },
+   "meter": "9/8",
+   "expected_q": "9/2",
+   "aud_voice_lengths_q": {
+    "1": "3",
+    "2": "9/2"
+   },
+   "rust_voice_lengths_q": {
+    "1": "9/2",
+    "2": "9/2"
+   },
+   "triggers": [
+    "aud_strict"
+   ],
+   "mr_mismatch": false,
+   "repair_class": "TYPE_B_MISSING_REST_SPLICE",
+   "sub_cause": "shared_mid_staff_rest",
+   "sub_causes": [
+    "shared_mid_staff_rest"
+   ],
+   "rust_strict_label": "exact_all_voices",
+   "graft_payload": {
+    "kind": "missing_rest_splice",
+    "rest_splices": [
+     {
+      "voice": "1",
+      "gap_onset_q": "3/2",
+      "dur_q": "3/2",
+      "rest_type": "quarter",
+      "sub_type": "shared_mid_staff_rest"
+     }
+    ]
+   }
+  },
+  {
+   "piece": "hard",
+   "page": 6,
+   "bar": {
+    "rust_pos": 341,
+    "aud_pos": 334,
+    "mxl_number_aud": "69",
+    "mxl_number_rust": "69",
+    "mxl_file": "b14_hard_page_06.mxl",
+    "mxl_idx": 72
+   },
+   "staff": {
+    "active_staff_idx": 1,
+    "aud_part": 1,
+    "aud_staff": 1,
+    "rust_part": 3
+   },
+   "meter": "9/8",
+   "expected_q": "9/2",
+   "aud_voice_lengths_q": {
+    "1": "9/2",
+    "2": "4"
+   },
+   "rust_voice_lengths_q": {
+    "1": "9/2",
+    "2": "9/2"
+   },
+   "triggers": [
+    "aud_strict",
+    "review:underfull_measure"
+   ],
+   "mr_mismatch": false,
+   "repair_class": "TYPE_A_DURATION_GRAFT",
+   "sub_cause": "missed_augmentation_dot",
+   "sub_causes": [
+    "missed_augmentation_dot"
+   ],
+   "rust_strict_label": "exact_all_voices",
+   "graft_payload": {
+    "kind": "duration_graft",
+    "edits": [
+     {
+      "voice": "2",
+      "event_idx": 1,
+      "onset_q": "3",
+      "aud_onset_q": "3",
+      "is_rest": false,
+      "pitches": [
+       "B4",
+       "F4"
+      ],
+      "aud_dur_q": "1",
+      "aud_type": "quarter",
+      "aud_dots": 0,
+      "aud_tuplet": null,
+      "rust_dur_q": "3/2",
+      "rust_type": "quarter",
+      "rust_dots": 1,
+      "rust_tuplet": null,
+      "sub_cause": "missed_augmentation_dot"
+     }
+    ]
+   }
+  },
+  {
+   "piece": "hard",
+   "page": 6,
+   "bar": {
+    "rust_pos": 342,
+    "aud_pos": 335,
+    "mxl_number_aud": "70",
+    "mxl_number_rust": "70",
+    "mxl_file": "b14_hard_page_06.mxl",
+    "mxl_idx": 73
+   },
+   "staff": {
+    "active_staff_idx": 1,
+    "aud_part": 1,
+    "aud_staff": 1,
+    "rust_part": 3
+   },
+   "meter": "9/8",
+   "expected_q": "9/2",
+   "aud_voice_lengths_q": {
+    "1": "9/2",
+    "2": "7/2"
+   },
+   "rust_voice_lengths_q": {
+    "1": "9/2",
+    "2": "9/2"
+   },
+   "triggers": [
+    "aud_strict",
+    "review:underfull_measure"
+   ],
+   "mr_mismatch": false,
+   "repair_class": "TYPE_A_DURATION_GRAFT",
+   "sub_cause": "missed_augmentation_dot",
+   "sub_causes": [
+    "missed_augmentation_dot"
+   ],
+   "rust_strict_label": "exact_all_voices",
+   "graft_payload": {
+    "kind": "duration_graft",
+    "edits": [
+     {
+      "voice": "2",
+      "event_idx": 0,
+      "onset_q": "0",
+      "aud_onset_q": "0",
+      "is_rest": false,
+      "pitches": [
+       "E4",
+       "G4"
+      ],
+      "aud_dur_q": "2",
+      "aud_type": "half",
+      "aud_dots": 0,
+      "aud_tuplet": null,
+      "rust_dur_q": "3",
+      "rust_type": "half",
+      "rust_dots": 1,
+      "rust_tuplet": null,
+      "sub_cause": "missed_augmentation_dot"
+     }
+    ]
+   }
+  },
+  {
+   "piece": "hard",
+   "page": 6,
+   "bar": {
+    "rust_pos": 343,
+    "aud_pos": 336,
+    "mxl_number_aud": "71",
+    "mxl_number_rust": "71",
+    "mxl_file": "b14_hard_page_06.mxl",
+    "mxl_idx": 74
+   },
+   "staff": {
+    "active_staff_idx": 1,
+    "aud_part": 1,
+    "aud_staff": 1,
+    "rust_part": 3
+   },
+   "meter": "9/8",
+   "expected_q": "9/2",
+   "aud_voice_lengths_q": {
+    "1": "9/2",
+    "2": "1",
+    "3": "3/2"
+   },
+   "rust_voice_lengths_q": {
+    "1": "9/2",
+    "2": "9/2"
+   },
+   "triggers": [
+    "aud_strict",
+    "review:underfull_measure"
+   ],
+   "mr_mismatch": false,
+   "repair_class": "TYPE_C_SHARED_VOICE_SPLIT",
+   "sub_cause": "voice_split_with_duration_graft",
+   "rust_strict_label": "exact_all_voices",
+   "graft_payload": {
+    "kind": "shared_voice_split",
+    "voice_split_actions": [
+     {
+      "col_idx": 1,
+      "onset_q": "3",
+      "action": "unison_duplication",
+      "target_voice": "2",
+      "pitch": "E4",
+      "from_voices": [
+       "3"
+      ],
+      "target_dur_q": "3/2",
+      "target_type": "quarter"
+     }
+    ],
+    "shared_rest_duplications": [
+     {
+      "voice": "2",
+      "onset_q": "3/2",
+      "dur_q": "3/2",
+      "type": "quarter"
+     }
+    ],
+    "duration_edits": [
+     {
+      "col_idx": 0,
+      "voice": "2",
+      "pitch": "E4",
+      "onset_q": "0",
+      "aud_dur_q": "1",
+      "rust_dur_q": "3/2",
+      "sub_cause": "missed_augmentation_dot"
+     },
+     {
+      "col_idx": 0,
+      "voice": "2",
+      "pitch": "G4",
+      "onset_q": "0",
+      "aud_dur_q": "1",
+      "rust_dur_q": "3/2",
+      "sub_cause": "missed_augmentation_dot"
+     }
+    ],
+    "rust_voices_target": {
+     "1": [
+      {
+       "voice": "1",
+       "onset_q": "0",
+       "dur_q": "3/2",
+       "is_rest": false,
+       "is_measure_rest": false,
+       "pitches": [
+        "C5"
+       ],
+       "type": "quarter",
+       "dots": 1,
+       "time_mod": null,
+       "beams": 0,
+       "default_x": null
+      },
+      {
+       "voice": "1",
+       "onset_q": "3/2",
+       "dur_q": "3/2",
+       "is_rest": true,
+       "is_measure_rest": false,
+       "pitches": [],
+       "type": "quarter",
+       "dots": 1,
+       "time_mod": null,
+       "beams": 0,
+       "default_x": null
+      },
+      {
+       "voice": "1",
+       "onset_q": "3",
+       "dur_q": "3/2",
+       "is_rest": false,
+       "is_measure_rest": false,
+       "pitches": [
+        "E5"
+       ],
+       "type": "quarter",
+       "dots": 1,
+       "time_mod": null,
+       "beams": 0,
+       "default_x": null
+      }
+     ],
+     "2": [
+      {
+       "voice": "2",
+       "onset_q": "0",
+       "dur_q": "3/2",
+       "is_rest": false,
+       "is_measure_rest": false,
+       "pitches": [
+        "E4",
+        "G4"
+       ],
+       "type": "quarter",
+       "dots": 1,
+       "time_mod": null,
+       "beams": 0,
+       "default_x": null
+      },
+      {
+       "voice": "2",
+       "onset_q": "3/2",
+       "dur_q": "3/2",
+       "is_rest": true,
+       "is_measure_rest": false,
+       "pitches": [],
+       "type": "quarter",
+       "dots": 1,
+       "time_mod": null,
+       "beams": 0,
+       "default_x": null
+      },
+      {
+       "voice": "2",
+       "onset_q": "3",
+       "dur_q": "3/2",
+       "is_rest": false,
+       "is_measure_rest": false,
+       "pitches": [
+        "E4"
+       ],
+       "type": "quarter",
+       "dots": 1,
+       "time_mod": null,
+       "beams": 0,
+       "default_x": null
+      }
+     ]
+    }
+   }
+  },
+  {
+   "piece": "hard",
+   "page": 6,
+   "bar": {
+    "rust_pos": 343,
+    "aud_pos": 336,
+    "mxl_number_aud": "71",
+    "mxl_number_rust": "71",
+    "mxl_file": "b14_hard_page_06.mxl",
+    "mxl_idx": 74
+   },
+   "staff": {
+    "active_staff_idx": 2,
+    "aud_part": 2,
+    "aud_staff": 1,
+    "rust_part": 4
+   },
+   "meter": "9/8",
+   "expected_q": "9/2",
+   "aud_voice_lengths_q": {
+    "1": "3",
+    "2": "9/2"
+   },
+   "rust_voice_lengths_q": {
+    "1": "9/2",
+    "2": "9/2"
+   },
+   "triggers": [
+    "aud_strict"
+   ],
+   "mr_mismatch": false,
+   "repair_class": "TYPE_B_MISSING_REST_SPLICE",
+   "sub_cause": "shared_mid_staff_rest",
+   "sub_causes": [
+    "shared_mid_staff_rest"
+   ],
+   "rust_strict_label": "exact_all_voices",
+   "graft_payload": {
+    "kind": "missing_rest_splice",
+    "rest_splices": [
+     {
+      "voice": "1",
+      "gap_onset_q": "3/2",
+      "dur_q": "3/2",
+      "rest_type": "quarter",
+      "sub_type": "shared_mid_staff_rest"
+     }
+    ]
+   }
+  },
+  {
+   "piece": "hard",
+   "page": 6,
+   "bar": {
+    "rust_pos": 344,
+    "aud_pos": 337,
+    "mxl_number_aud": "72",
+    "mxl_number_rust": "72",
+    "mxl_file": "b14_hard_page_06.mxl",
+    "mxl_idx": 75
+   },
+   "staff": {
+    "active_staff_idx": 1,
+    "aud_part": 1,
+    "aud_staff": 1,
+    "rust_part": 3
+   },
+   "meter": "9/8",
+   "expected_q": "9/2",
+   "aud_voice_lengths_q": {
+    "1": "9/2",
+    "2": "4"
+   },
+   "rust_voice_lengths_q": {
+    "1": "9/2",
+    "2": "9/2"
+   },
+   "triggers": [
+    "aud_strict",
+    "review:underfull_measure"
+   ],
+   "mr_mismatch": false,
+   "repair_class": "TYPE_A_DURATION_GRAFT",
+   "sub_cause": "missed_augmentation_dot",
+   "sub_causes": [
+    "missed_augmentation_dot"
+   ],
+   "rust_strict_label": "exact_all_voices",
+   "graft_payload": {
+    "kind": "duration_graft",
+    "edits": [
+     {
+      "voice": "2",
+      "event_idx": 1,
+      "onset_q": "3",
+      "aud_onset_q": "3",
+      "is_rest": false,
+      "pitches": [
+       "E4"
+      ],
+      "aud_dur_q": "1",
+      "aud_type": "quarter",
+      "aud_dots": 0,
+      "aud_tuplet": null,
+      "rust_dur_q": "3/2",
+      "rust_type": "quarter",
+      "rust_dots": 1,
+      "rust_tuplet": null,
+      "sub_cause": "missed_augmentation_dot"
+     }
+    ]
+   }
+  },
+  {
+   "piece": "hard",
+   "page": 6,
+   "bar": {
+    "rust_pos": 345,
+    "aud_pos": 338,
+    "mxl_number_aud": "73",
+    "mxl_number_rust": "73",
+    "mxl_file": "b14_hard_page_06.mxl",
+    "mxl_idx": 76
+   },
+   "staff": {
+    "active_staff_idx": 1,
+    "aud_part": 1,
+    "aud_staff": 1,
+    "rust_part": 3
+   },
+   "meter": "9/8",
+   "expected_q": "9/2",
+   "aud_voice_lengths_q": {
+    "1": "3",
+    "2": "5/2",
+    "3": "1"
+   },
+   "rust_voice_lengths_q": {
+    "1": "9/2",
+    "2": "9/2"
+   },
+   "triggers": [
+    "aud_wrong",
+    "aud_strict",
+    "review:underfull_measure"
+   ],
+   "mr_mismatch": false,
+   "repair_class": "TYPE_C_SHARED_VOICE_SPLIT",
+   "sub_cause": "voice_split_with_duration_graft",
+   "rust_strict_label": "exact_all_voices",
+   "graft_payload": {
+    "kind": "shared_voice_split",
+    "voice_split_actions": [
+     {
+      "col_idx": 1,
+      "onset_q": "3/2",
+      "action": "unison_duplication",
+      "target_voice": "1",
+      "pitch": "F#4",
+      "from_voices": [
+       "2"
+      ],
+      "target_dur_q": "3/2",
+      "target_type": "quarter"
+     },
+     {
+      "col_idx": 2,
+      "onset_q": "3",
+      "action": "unison_duplication",
+      "target_voice": "2",
+      "pitch": "E4",
+      "from_voices": [
+       "3"
+      ],
+      "target_dur_q": "3/2",
+      "target_type": "quarter"
+     }
+    ],
+    "shared_rest_duplications": [],
+    "duration_edits": [
+     {
+      "col_idx": 0,
+      "voice": "2",
+      "pitch": "E4",
+      "onset_q": "0",
+      "aud_dur_q": "1",
+      "rust_dur_q": "3/2",
+      "sub_cause": "missed_augmentation_dot"
+     }
+    ],
+    "rust_voices_target": {
+     "1": [
+      {
+       "voice": "1",
+       "onset_q": "0",
+       "dur_q": "3/2",
+       "is_rest": false,
+       "is_measure_rest": false,
+       "pitches": [
+        "E4"
+       ],
+       "type": "quarter",
+       "dots": 1,
+       "time_mod": null,
+       "beams": 0,
+       "default_x": null
+      },
+      {
+       "voice": "1",
+       "onset_q": "3/2",
+       "dur_q": "3/2",
+       "is_rest": false,
+       "is_measure_rest": false,
+       "pitches": [
+        "F#4"
+       ],
+       "type": "quarter",
+       "dots": 1,
+       "time_mod": null,
+       "beams": 0,
+       "default_x": null
+      },
+      {
+       "voice": "1",
+       "onset_q": "3",
+       "dur_q": "3/2",
+       "is_rest": false,
+       "is_measure_rest": false,
+       "pitches": [
+        "G#4"
+       ],
+       "type": "quarter",
+       "dots": 1,
+       "time_mod": null,
+       "beams": 0,
+       "default_x": null
+      }
+     ],
+     "2": [
+      {
+       "voice": "2",
+       "onset_q": "0",
+       "dur_q": "3/2",
+       "is_rest": false,
+       "is_measure_rest": false,
+       "pitches": [
+        "E4"
+       ],
+       "type": "quarter",
+       "dots": 1,
+       "time_mod": null,
+       "beams": 0,
+       "default_x": null
+      },
+      {
+       "voice": "2",
+       "onset_q": "3/2",
+       "dur_q": "3/2",
+       "is_rest": false,
+       "is_measure_rest": false,
+       "pitches": [
+        "F#4"
+       ],
+       "type": "quarter",
+       "dots": 1,
+       "time_mod": null,
+       "beams": 0,
+       "default_x": null
+      },
+      {
+       "voice": "2",
+       "onset_q": "3",
+       "dur_q": "3/2",
+       "is_rest": false,
+       "is_measure_rest": false,
+       "pitches": [
+        "E4"
+       ],
+       "type": "quarter",
+       "dots": 1,
+       "time_mod": null,
+       "beams": 0,
+       "default_x": null
+      }
+     ]
+    }
+   }
+  },
+  {
+   "piece": "hard",
+   "page": 6,
+   "bar": {
+    "rust_pos": 347,
+    "aud_pos": 340,
+    "mxl_number_aud": "75",
+    "mxl_number_rust": "75",
+    "mxl_file": "b14_hard_page_06.mxl",
+    "mxl_idx": 78
+   },
+   "staff": {
+    "active_staff_idx": 1,
+    "aud_part": 1,
+    "aud_staff": 1,
+    "rust_part": 3
+   },
+   "meter": "9/8",
+   "expected_q": "9/2",
+   "aud_voice_lengths_q": {
+    "1": "3",
+    "2": "3"
+   },
+   "rust_voice_lengths_q": {
+    "1": "9/2",
+    "2": "9/2"
+   },
+   "triggers": [
+    "aud_wrong",
+    "aud_strict",
+    "review:bar_length_mismatch",
+    "review:underfull_measure"
+   ],
+   "mr_mismatch": false,
+   "repair_class": "TYPE_B_MISSING_REST_SPLICE",
+   "sub_cause": "shared_mid_staff_rest",
+   "sub_causes": [
+    "shared_mid_staff_rest"
+   ],
+   "rust_strict_label": "exact_all_voices",
+   "graft_payload": {
+    "kind": "missing_rest_splice",
+    "rest_splices": [
+     {
+      "voice": "1",
+      "gap_onset_q": "3/2",
+      "dur_q": "3/2",
+      "rest_type": "quarter",
+      "sub_type": "shared_mid_staff_rest"
+     },
+     {
+      "voice": "2",
+      "gap_onset_q": "3/2",
+      "dur_q": "3/2",
+      "rest_type": "quarter",
+      "sub_type": "shared_mid_staff_rest"
+     }
+    ]
+   }
+  },
+  {
+   "piece": "hard",
+   "page": 6,
+   "bar": {
+    "rust_pos": 347,
+    "aud_pos": 340,
+    "mxl_number_aud": "75",
+    "mxl_number_rust": "75",
+    "mxl_file": "b14_hard_page_06.mxl",
+    "mxl_idx": 78
+   },
+   "staff": {
+    "active_staff_idx": 2,
+    "aud_part": 2,
+    "aud_staff": 1,
+    "rust_part": 4
+   },
+   "meter": "9/8",
+   "expected_q": "9/2",
+   "aud_voice_lengths_q": {
+    "1": "3",
+    "2": "3"
+   },
+   "rust_voice_lengths_q": {
+    "1": "9/2",
+    "2": "9/2"
+   },
+   "triggers": [
+    "aud_wrong",
+    "aud_strict",
+    "review:bar_length_mismatch",
+    "review:underfull_measure"
+   ],
+   "mr_mismatch": false,
+   "repair_class": "TYPE_B_MISSING_REST_SPLICE",
+   "sub_cause": "shared_mid_staff_rest",
+   "sub_causes": [
+    "shared_mid_staff_rest"
+   ],
+   "rust_strict_label": "exact_all_voices",
+   "graft_payload": {
+    "kind": "missing_rest_splice",
+    "rest_splices": [
+     {
+      "voice": "1",
+      "gap_onset_q": "3/2",
+      "dur_q": "3/2",
+      "rest_type": "quarter",
+      "sub_type": "shared_mid_staff_rest"
+     },
+     {
+      "voice": "2",
+      "gap_onset_q": "3/2",
+      "dur_q": "3/2",
+      "rest_type": "quarter",
+      "sub_type": "shared_mid_staff_rest"
+     }
+    ]
+   }
+  },
+  {
+   "piece": "hard",
+   "page": 6,
+   "bar": {
+    "rust_pos": 348,
+    "aud_pos": 341,
+    "mxl_number_aud": "76",
+    "mxl_number_rust": "76",
+    "mxl_file": "b14_hard_page_06.mxl",
+    "mxl_idx": 79
+   },
+   "staff": {
+    "active_staff_idx": 1,
+    "aud_part": 1,
+    "aud_staff": 1,
+    "rust_part": 3
+   },
+   "meter": "9/8",
+   "expected_q": "9/2",
+   "aud_voice_lengths_q": {
+    "1": "5/2",
+    "2": "3",
+    "3": "3/2",
+    "4": "3/2"
+   },
+   "rust_voice_lengths_q": {
+    "1": "9/2",
+    "2": "9/2"
+   },
+   "triggers": [
+    "aud_wrong",
+    "aud_strict",
+    "review:underfull_measure"
+   ],
+   "mr_mismatch": false,
+   "repair_class": "TYPE_C_SHARED_VOICE_SPLIT",
+   "sub_cause": "voice_split_with_duration_graft",
+   "rust_strict_label": "exact_all_voices",
+   "graft_payload": {
+    "kind": "shared_voice_split",
+    "voice_split_actions": [
+     {
+      "col_idx": 1,
+      "onset_q": "3/2",
+      "action": "unison_duplication",
+      "target_voice": "2",
+      "pitch": "A4",
+      "from_voices": [
+       "3"
+      ],
+      "target_dur_q": "3/2",
+      "target_type": "quarter"
+     },
+     {
+      "col_idx": 2,
+      "onset_q": "3",
+      "action": "unison_duplication",
+      "target_voice": "1",
+      "pitch": "B4",
+      "from_voices": [
+       "4"
+      ],
+      "target_dur_q": "3/2",
+      "target_type": "quarter"
+     }
+    ],
+    "shared_rest_duplications": [],
+    "duration_edits": [
+     {
+      "col_idx": 0,
+      "voice": "1",
+      "pitch": "B4",
+      "onset_q": "0",
+      "aud_dur_q": "1",
+      "rust_dur_q": "3/2",
+      "sub_cause": "missed_augmentation_dot"
+     },
+     {
+      "col_idx": 0,
+      "voice": "1",
+      "pitch": "D5",
+      "onset_q": "0",
+      "aud_dur_q": "1",
+      "rust_dur_q": "3/2",
+      "sub_cause": "missed_augmentation_dot"
+     }
+    ],
+    "rust_voices_target": {
+     "1": [
+      {
+       "voice": "1",
+       "onset_q": "0",
+       "dur_q": "3/2",
+       "is_rest": false,
+       "is_measure_rest": false,
+       "pitches": [
+        "B4",
+        "D5"
+       ],
+       "type": "quarter",
+       "dots": 1,
+       "time_mod": null,
+       "beams": 0,
+       "default_x": null
+      },
+      {
+       "voice": "1",
+       "onset_q": "3/2",
+       "dur_q": "3/2",
+       "is_rest": false,
+       "is_measure_rest": false,
+       "pitches": [
+        "C5"
+       ],
+       "type": "quarter",
+       "dots": 1,
+       "time_mod": null,
+       "beams": 0,
+       "default_x": null
+      },
+      {
+       "voice": "1",
+       "onset_q": "3",
+       "dur_q": "3/2",
+       "is_rest": false,
+       "is_measure_rest": false,
+       "pitches": [
+        "B4"
+       ],
+       "type": "quarter",
+       "dots": 1,
+       "time_mod": null,
+       "beams": 0,
+       "default_x": null
+      }
+     ],
+     "2": [
+      {
+       "voice": "2",
+       "onset_q": "0",
+       "dur_q": "3/2",
+       "is_rest": false,
+       "is_measure_rest": false,
+       "pitches": [
+        "G4"
+       ],
+       "type": "quarter",
+       "dots": 1,
+       "time_mod": null,
+       "beams": 0,
+       "default_x": null
+      },
+      {
+       "voice": "2",
+       "onset_q": "3/2",
+       "dur_q": "3/2",
+       "is_rest": false,
+       "is_measure_rest": false,
+       "pitches": [
+        "A4"
+       ],
+       "type": "quarter",
+       "dots": 1,
+       "time_mod": null,
+       "beams": 0,
+       "default_x": null
+      },
+      {
+       "voice": "2",
+       "onset_q": "3",
+       "dur_q": "3/2",
+       "is_rest": false,
+       "is_measure_rest": false,
+       "pitches": [
+        "G4"
+       ],
+       "type": "quarter",
+       "dots": 1,
+       "time_mod": null,
+       "beams": 0,
+       "default_x": null
+      }
+     ]
+    }
+   }
+  }
+ ]
+}

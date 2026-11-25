@@ -1,0 +1,5 @@
+{
+  "source_pdf": "fixture_page.pdf",
+  "tempos": [],
+  "note": "no PDF text layer (0 fonts, 0 text characters, 1613 vector drawings, 0 images): printed tempo glyphs are outlines/pixels, not text - header tempo cannot be read from the PDF; only Audiveris' OCR of the score can supply it"
+}

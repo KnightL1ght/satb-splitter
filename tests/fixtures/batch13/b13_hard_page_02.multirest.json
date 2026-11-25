@@ -1,0 +1,10 @@
+{
+ "source_pdf": "fixture_page.pdf",
+ "printed": [
+  {
+   "measure_index": 32,
+   "count": 20,
+   "system": 5
+  }
+ ]
+}

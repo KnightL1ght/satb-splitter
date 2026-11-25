@@ -1,0 +1,25 @@
+{
+ "source_pdf": "fixture_page.pdf",
+ "printed": [
+  {
+   "measure_index": 0,
+   "count": 6,
+   "system": 0
+  },
+  {
+   "measure_index": 6,
+   "count": 11,
+   "system": 0
+  },
+  {
+   "measure_index": 18,
+   "count": 8,
+   "system": 0
+  },
+  {
+   "measure_index": 39,
+   "count": 10,
+   "system": 4
+  }
+ ]
+}

@@ -1,0 +1,9 @@
+{
+  "name": "two_staff_satb",
+  "description": "Two staves: treble SA, bass TB",
+  "ignore_part_indices": [],
+  "pairs": [
+    { "part_index": 0, "upper": "Soprano", "lower": "Alto" },
+    { "part_index": 1, "upper": "Tenor", "lower": "Bass" }
+  ]
+}

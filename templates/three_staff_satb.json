@@ -1,0 +1,10 @@
+{
+  "name": "three_staff_satb",
+  "description": "Three staves: SA / T / B",
+  "ignore_part_indices": [],
+  "pairs": [
+    { "part_index": 0, "upper": "Soprano", "lower": "Alto" },
+    { "part_index": 1, "upper": "Tenor", "lower": null },
+    { "part_index": 2, "upper": "Bass", "lower": null }
+  ]
+}

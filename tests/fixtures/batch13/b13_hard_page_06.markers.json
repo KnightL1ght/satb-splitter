@@ -1,0 +1,35 @@
+{
+ "source_pdf": "fixture_page.pdf",
+ "markers": [
+  {
+   "measure_index": 16,
+   "text": "femeile",
+   "system": 1
+  },
+  {
+   "measure_index": 34,
+   "text": "S,A",
+   "system": 3
+  },
+  {
+   "measure_index": 34,
+   "text": "T,B",
+   "system": 3
+  },
+  {
+   "measure_index": 43,
+   "text": "femeile",
+   "system": 4
+  },
+  {
+   "measure_index": 53,
+   "text": "S,A",
+   "system": 5
+  },
+  {
+   "measure_index": 53,
+   "text": "T,B",
+   "system": 5
+  }
+ ]
+}

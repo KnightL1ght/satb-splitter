@@ -1,0 +1,15 @@
+{
+ "source_pdf": "fixture",
+ "markers": [
+  {
+   "measure_index": 0,
+   "text": "trio",
+   "system": 0
+  },
+  {
+   "measure_index": 9,
+   "text": "solo alto",
+   "system": 2
+  }
+ ]
+}

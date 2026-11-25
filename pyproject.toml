@@ -1,0 +1,38 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "satb-splitter"
+version = "0.2.0"
+description = "Split choral MusicXML scores into separate Soprano, Alto, Tenor, Bass parts"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+authors = [{ name = "SATB Splitter" }]
+dependencies = [
+    "music21>=9.1.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+]
+gui = [
+    "PySide6>=6.6",
+]
+omr = [
+    "pymupdf>=1.24",
+]
+
+[project.scripts]
+satb-split = "satb_splitter.cli:main"
+satb-omr = "satb_splitter.omr_cli:main"
+satb-app = "satb_splitter.gui.app:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
