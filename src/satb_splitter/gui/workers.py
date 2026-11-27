@@ -231,3 +231,102 @@ class PipelineWorker(QObject):
             "flags": flags,
             "divisi_choices": list(getattr(combined_result, "divisi_choices", None) or []),
         }
+
+
+class Mp3ExportWorker(QObject):
+    """Render selected voice MusicXML files to Grand Piano MP3s sequentially."""
+
+    progress = Signal(str)
+    file_done = Signal(str, str, str)
+    finished = Signal(dict)
+    failed = Signal(str)
+
+    def __init__(
+        self,
+        voice_files: dict[str, Path | str],
+        out_dir: Path | str | None = None,
+        *,
+        bitrate: int = 192,
+        tempo_bpm: int | None = None,
+        musescore: str | Path | None = None,
+        cancel_event: Event | None = None,
+        parent=None,
+    ):
+        super().__init__(parent)
+        self.voice_files: dict[str, Path] = {
+            str(role): Path(p) for role, p in voice_files.items()
+        }
+        self.out_dir: Path | None = Path(out_dir) if out_dir is not None else None
+        self.bitrate = int(bitrate)
+        self.tempo_bpm = int(tempo_bpm) if tempo_bpm else None
+        self.musescore = musescore
+        self.cancel_event = cancel_event or Event()
+
+    def request_cancel(self) -> None:
+        self.cancel_event.set()
+
+    def _check_cancel(self) -> None:
+        if self.cancel_event.is_set():
+            raise CancelledError("Cancelled")
+
+    @Slot()
+    def run(self) -> None:
+        try:
+            result = self._run()
+            self.finished.emit(result)
+        except CancelledError:
+            self.failed.emit("Cancelled")
+        except Exception as exc:  # noqa: BLE001
+            self.failed.emit(str(exc))
+
+    def _run(self) -> dict:
+        from satb_splitter.export.mp3 import export_mp3_grand_piano
+
+        if not self.voice_files:
+            raise RuntimeError("No voice MusicXML files selected for MP3 export.")
+
+        if self.out_dir is not None:
+            self.out_dir.mkdir(parents=True, exist_ok=True)
+            resolved_out = self.out_dir
+        else:
+            resolved_out = next(iter(self.voice_files.values())).parent
+
+        mp3_files: dict[str, str] = {}
+        errors: list[str] = []
+        items = list(self.voice_files.items())
+        total = len(items)
+
+        for idx, (role, src_path) in enumerate(items, start=1):
+            self._check_cancel()
+            self.progress.emit(f"Rendering {role} ({idx}/{total}) as Grand Piano MP3…")
+            dest_path = (
+                self.out_dir / f"{src_path.stem}_Piano.mp3"
+                if self.out_dir is not None
+                else src_path.with_name(f"{src_path.stem}_Piano.mp3")
+            )
+            res = export_mp3_grand_piano(
+                src_path,
+                dest_path,
+                musescore=self.musescore,
+                bitrate=self.bitrate,
+                tempo_bpm=self.tempo_bpm,
+                role=role,
+            )
+            self._check_cancel()
+            if res.ok and res.path is not None:
+                mp3_files[role] = str(res.path)
+                self.file_done.emit(role, str(res.path), res.message)
+                self.progress.emit(f"  [OK] {role} → {res.path.name}")
+            else:
+                err_msg = f"{role}: {res.message}"
+                errors.append(err_msg)
+                self.progress.emit(f"  [FAIL] {err_msg}")
+
+        if not mp3_files:
+            raise RuntimeError("\n".join(errors) if errors else "MP3 export failed.")
+
+        return {
+            "mp3_files": mp3_files,
+            "out_dir": str(resolved_out),
+            "errors": errors,
+        }

@@ -29,6 +29,7 @@ from PySide6.QtWidgets import (
     QPlainTextEdit,
     QProgressBar,
     QPushButton,
+    QSpinBox,
     QSplitter,
     QStackedWidget,
     QStatusBar,
@@ -37,10 +38,12 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
+from satb_splitter.export.mp3 import discover_voice_musicxml_files
+from satb_splitter.export.mscz import find_musescore
 from satb_splitter.gui.divisi_dialog import DivisiResolverDialog
 from satb_splitter.gui.icon import create_app_icon, render_icon_pixmap
 from satb_splitter.gui.styles import apply_app_theme, apply_card_shadow, get_theme_colors
-from satb_splitter.gui.workers import PipelineWorker
+from satb_splitter.gui.workers import Mp3ExportWorker, PipelineWorker
 from satb_splitter.omr.audiveris import find_audiveris
 from satb_splitter.omr.image_prep import IMAGE_EXTS, is_image_path
 
@@ -289,6 +292,12 @@ class MainWindow(QMainWindow):
         self._thread: QThread | None = None
         self._worker: PipelineWorker | None = None
         self._cancel = Event()
+        self._mp3_thread: QThread | None = None
+        self._mp3_worker: Mp3ExportWorker | None = None
+        self._mp3_cancel = Event()
+        self._mp3_sources: dict[str, Path] = {}
+        self._mp3_outputs: dict[str, Path] = {}
+        self._mp3_out_dir: Path | None = None
         self._last_result: dict | None = None
         self._queue: list[Path | list[Path]] = []
         self._queue_results: list[dict] = []
@@ -309,6 +318,7 @@ class MainWindow(QMainWindow):
         self._load_settings()
         self._apply_theme_to_widgets()
         self._refresh_audiveris_status()
+        self._refresh_mp3_tab()
         self._update_file_count()
         self.setStatusBar(QStatusBar())
         self.statusBar().showMessage("Add a PDF, sheet photo, or MusicXML file to begin.")
@@ -766,6 +776,132 @@ class MainWindow(QMainWindow):
         flags_l.addWidget(self.flags_view, stretch=1)
         self.tabs.addTab(flags_tab, "  Review flags  ")
 
+        # ---- Tab 3: MP3 Audio (Grand Piano) ----
+        mp3_tab = QWidget()
+        mp3_l = QVBoxLayout(mp3_tab)
+        mp3_l.setContentsMargins(8, 8, 8, 8)
+        mp3_l.setSpacing(10)
+
+        mp3_top = QHBoxLayout()
+        mp3_top.setSpacing(8)
+        mp3_intro = QLabel("Render choral voice parts as Acoustic Grand Piano MP3 practice tracks")
+        mp3_intro.setObjectName("muted")
+        self.mp3_ms_badge = QLabel("○ MuseScore 4 Required")
+        self.mp3_ms_badge.setObjectName("statusPillWarn")
+        mp3_top.addWidget(mp3_intro, stretch=1)
+        mp3_top.addWidget(self.mp3_ms_badge)
+        mp3_l.addLayout(mp3_top)
+
+        voices_row = QHBoxLayout()
+        voices_row.setSpacing(12)
+        voices_lbl = QLabel("Voices:")
+        voices_lbl.setObjectName("muted")
+        voices_row.addWidget(voices_lbl)
+        self.mp3_voice_checks: dict[str, QCheckBox] = {}
+        for role, label, default_checked in [
+            ("Soprano", "Soprano", True),
+            ("Alto", "Alto", True),
+            ("Tenor", "Tenor", True),
+            ("Bass", "Bass", True),
+            ("SATB", "SATB (Full)", False),
+        ]:
+            chk = QCheckBox(label)
+            chk.setChecked(default_checked)
+            self.mp3_voice_checks[role] = chk
+            voices_row.addWidget(chk)
+        voices_row.addStretch()
+        mp3_l.addLayout(voices_row)
+
+        opts_row = QHBoxLayout()
+        opts_row.setSpacing(8)
+        br_lbl = QLabel("Bitrate:")
+        br_lbl.setObjectName("muted")
+        self.mp3_bitrate_combo = QComboBox()
+        self.mp3_bitrate_combo.addItem("192 kbps (Recommended)", 192)
+        self.mp3_bitrate_combo.addItem("128 kbps", 128)
+        self.mp3_bitrate_combo.addItem("320 kbps", 320)
+        self.mp3_bitrate_combo.setToolTip("MP3 audio bitrate passed to MuseScore 4")
+
+        tempo_lbl = QLabel("Tempo:")
+        tempo_lbl.setObjectName("muted")
+        self.mp3_tempo_spin = QSpinBox()
+        self.mp3_tempo_spin.setRange(0, 200)
+        self.mp3_tempo_spin.setSpecialValueText("Score tempo")
+        self.mp3_tempo_spin.setSuffix(" BPM")
+        self.mp3_tempo_spin.setValue(0)
+        self.mp3_tempo_spin.setToolTip("0 = keep score tempo; 1–200 BPM = override rehearsal playback tempo")
+
+        self.btn_mp3_load = QPushButton("Load Voices…")
+        self.btn_mp3_load.setObjectName("subtle")
+        self.btn_mp3_load.setToolTip("Load existing split MusicXML (.musicxml / .xml / .mxl) files for MP3 export")
+        self.btn_mp3_load.clicked.connect(self.load_mp3_sources)
+
+        self.btn_export_mp3 = QPushButton("🎹  Export Grand Piano MP3")
+        self.btn_export_mp3.setObjectName("primary")
+        self.btn_export_mp3.setToolTip("Export checked voice parts as Grand Piano MP3 audio via MuseScore 4")
+        self.btn_export_mp3.clicked.connect(self.start_mp3_export)
+        self.btn_export_mp3.setEnabled(False)
+
+        self.btn_mp3_cancel = QPushButton("✕  Stop")
+        self.btn_mp3_cancel.setObjectName("danger")
+        self.btn_mp3_cancel.clicked.connect(self.cancel_mp3_export)
+        self.btn_mp3_cancel.setVisible(False)
+
+        opts_row.addWidget(br_lbl)
+        opts_row.addWidget(self.mp3_bitrate_combo)
+        opts_row.addWidget(tempo_lbl)
+        opts_row.addWidget(self.mp3_tempo_spin)
+        opts_row.addStretch()
+        opts_row.addWidget(self.btn_mp3_load)
+        opts_row.addWidget(self.btn_export_mp3)
+        opts_row.addWidget(self.btn_mp3_cancel)
+        mp3_l.addLayout(opts_row)
+
+        self.mp3_step_label = QLabel("Run Convert & Split or click Load Voices… to select MusicXML files.")
+        self.mp3_step_label.setObjectName("muted")
+        mp3_l.addWidget(self.mp3_step_label)
+
+        self.mp3_progress = QProgressBar()
+        self.mp3_progress.setRange(0, 0)
+        self.mp3_progress.setTextVisible(False)
+        self.mp3_progress.setFixedHeight(6)
+        self.mp3_progress.setVisible(False)
+        mp3_l.addWidget(self.mp3_progress)
+
+        self.mp3_stack = QStackedWidget()
+        empty_mp3 = QLabel(
+            "Grand Piano MP3 tracks will appear here after export.\n"
+            "Every part is rewritten to Acoustic Grand Piano (MIDI program 1) without modifying your MusicXML files."
+        )
+        empty_mp3.setObjectName("muted")
+        empty_mp3.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        empty_mp3.setWordWrap(True)
+
+        self.mp3_list = QListWidget()
+        self.mp3_list.setSpacing(4)
+        self.mp3_list.setUniformItemSizes(False)
+        self.mp3_list.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self.mp3_list.itemDoubleClicked.connect(self._open_mp3_item)
+
+        self.mp3_stack.addWidget(empty_mp3)
+        self.mp3_stack.addWidget(self.mp3_list)
+        mp3_l.addWidget(self.mp3_stack, stretch=1)
+
+        mp3_btns = QHBoxLayout()
+        mp3_btns.setSpacing(6)
+        self.btn_play_mp3 = QPushButton("▶  Play selected")
+        self.btn_play_mp3.setObjectName("success")
+        self.btn_play_mp3.clicked.connect(self.play_selected_mp3)
+        self.btn_play_mp3.setEnabled(False)
+        self.btn_open_mp3_folder = QPushButton("Open MP3 folder")
+        self.btn_open_mp3_folder.clicked.connect(self.open_mp3_folder)
+        self.btn_open_mp3_folder.setEnabled(False)
+        mp3_btns.addWidget(self.btn_play_mp3)
+        mp3_btns.addWidget(self.btn_open_mp3_folder)
+        mp3_btns.addStretch()
+        mp3_l.addLayout(mp3_btns)
+        self.tabs.addTab(mp3_tab, "  MP3 Audio  ")
+
         rc.addWidget(self.tabs)
         right_l.addWidget(right_card, stretch=1)
 
@@ -854,6 +990,18 @@ class MainWindow(QMainWindow):
             else bool(merge_val)
         )
         self.chk_merge_images.setChecked(is_merge)
+        try:
+            mp3_br = int(self.settings.value("mp3_bitrate", 192) or 192)
+        except (TypeError, ValueError):
+            mp3_br = 192
+        br_idx = self.mp3_bitrate_combo.findData(mp3_br)
+        if br_idx >= 0:
+            self.mp3_bitrate_combo.setCurrentIndex(br_idx)
+        try:
+            mp3_tempo = int(self.settings.value("mp3_tempo_bpm", 0) or 0)
+        except (TypeError, ValueError):
+            mp3_tempo = 0
+        self.mp3_tempo_spin.setValue(max(0, min(200, mp3_tempo)))
 
     def _save_settings(self) -> None:
         self.settings.setValue("output_dir", self.out_edit.text())
@@ -863,6 +1011,8 @@ class MainWindow(QMainWindow):
         self.settings.setValue("divisi_mode", self.divisi_combo.currentData())
         self.settings.setValue("photo_enhance", self.photo_enhance_combo.currentData())
         self.settings.setValue("merge_images", self.chk_merge_images.isChecked())
+        self.settings.setValue("mp3_bitrate", int(self.mp3_bitrate_combo.currentData() or 192))
+        self.settings.setValue("mp3_tempo_bpm", int(self.mp3_tempo_spin.value()))
         self.settings.setValue("theme", self._theme)
 
     def _overrides_path(self, work_dir: Path, stem: str) -> Path:
@@ -915,9 +1065,23 @@ class MainWindow(QMainWindow):
         if ms:
             self.hero_ms_pill.setText("● MuseScore 4 Ready")
             self.hero_ms_pill.setObjectName("heroPillOk")
+            self.mp3_ms_badge.setText("● MuseScore 4 Ready")
+            self.mp3_ms_badge.setObjectName("statusPillOk")
+            self.mp3_ms_badge.setStyleSheet(
+                f"background: {c['success_soft']}; color: {c['success']}; "
+                f"border: 1px solid {c['success_border']}; border-radius: 8px; "
+                "padding: 4px 10px; font-weight: 700; font-size: 11px;"
+            )
         else:
             self.hero_ms_pill.setText("○ MuseScore Not Found")
             self.hero_ms_pill.setObjectName("heroPillInfo")
+            self.mp3_ms_badge.setText("○ MuseScore 4 Required")
+            self.mp3_ms_badge.setObjectName("statusPillWarn")
+            self.mp3_ms_badge.setStyleSheet(
+                f"background: {c['warning_soft']}; color: {c['warning']}; "
+                f"border: 1px solid {c['warning_border']}; border-radius: 8px; "
+                "padding: 4px 10px; font-weight: 700; font-size: 11px;"
+            )
 
     def add_paths(self, paths: list[Path]) -> None:
         for p in paths:
@@ -1143,6 +1307,11 @@ class MainWindow(QMainWindow):
         self.flags_count_badge.setText("0 flags")
         self.result_stack.setCurrentIndex(0)
         self._last_result = None
+        if self._mp3_thread is None:
+            self._mp3_sources.clear()
+            self._mp3_outputs.clear()
+            self._mp3_out_dir = None
+            self._refresh_mp3_tab()
         self.btn_run.setEnabled(False)
         self.btn_run.setText("⏳  Working…")
         self.btn_cancel.setVisible(True)
@@ -1457,6 +1626,23 @@ class MainWindow(QMainWindow):
 
         self._refresh_kpis()
 
+        if self._mp3_thread is None:
+            mp3_sources: dict[str, Path] = {}
+            voices_dict = result.get("voices") or {}
+            for role in ("Soprano", "Alto", "Tenor", "Bass"):
+                vp = voices_dict.get(role)
+                if vp:
+                    mp3_sources[role] = Path(vp)
+            for role, vp in voices_dict.items():
+                if role not in mp3_sources and vp:
+                    mp3_sources[role] = Path(vp)
+            if satb:
+                mp3_sources["SATB"] = Path(satb)
+            self._mp3_sources = mp3_sources
+            self._mp3_outputs = {}
+            self._mp3_out_dir = Path(voices_dir) if voices_dir else None
+            self._refresh_mp3_tab()
+
         self.log(f"Done. Voices → {result.get('voices_dir')}")
         if satb:
             self.log(f"Combined SATB score → {satb}")
@@ -1529,20 +1715,273 @@ class MainWindow(QMainWindow):
 
     @staticmethod
     def _find_musescore() -> str | None:
-        candidates = [
-            Path(r"C:\Program Files\MuseScore 4\bin\MuseScore4.exe"),
-            Path(r"C:\Program Files\MuseScore 3\bin\MuseScore3.exe"),
-        ]
-        for c in candidates:
-            if c.is_file():
-                return str(c)
-        from shutil import which
+        hit = find_musescore()
+        return str(hit) if hit is not None else None
 
-        for name in ("MuseScore4", "mscore", "MuseScore3"):
-            w = which(name)
-            if w:
-                return w
-        return None
+    # ---- Tab 3: Grand Piano MP3 Audio ----
+
+    def _refresh_mp3_tab(self, *, keep_status: bool = False) -> None:
+        is_busy = self._mp3_thread is not None
+        self.btn_export_mp3.setEnabled(bool(self._mp3_sources) and not is_busy)
+        self.btn_mp3_load.setEnabled(not is_busy)
+        self.btn_mp3_cancel.setVisible(is_busy)
+        self.mp3_progress.setVisible(is_busy)
+
+        if self._mp3_outputs and self.mp3_list.count() == 0:
+            br = int(self.mp3_bitrate_combo.currentData() or 192)
+            for role, path in self._mp3_outputs.items():
+                p = Path(path)
+                _add_row(
+                    self.mp3_list,
+                    f"{role}  —  {p.name}",
+                    str(p),
+                    str(p),
+                    VOICE_COLORS.get(role, "#2563eb"),
+                    badge=f"{role.upper()} · MP3",
+                    status=f"{br} kbps",
+                )
+        elif not self._mp3_outputs and not is_busy:
+            self.mp3_list.clear()
+
+        self.mp3_stack.setCurrentIndex(1 if self.mp3_list.count() else 0)
+        self.btn_play_mp3.setEnabled(bool(self._mp3_outputs) and self.mp3_list.count() > 0)
+        self.btn_open_mp3_folder.setEnabled(bool(self._mp3_outputs) or self._mp3_out_dir is not None)
+
+        if not keep_status and not is_busy and not self._mp3_outputs:
+            if self._mp3_sources:
+                roles_str = ", ".join(self._mp3_sources.keys())
+                self.mp3_step_label.setText(
+                    f"Ready — {len(self._mp3_sources)} voice file(s) loaded ({roles_str})."
+                )
+            else:
+                self.mp3_step_label.setText(
+                    "Run Convert & Split or click Load Voices… to select MusicXML files."
+                )
+
+    def load_mp3_sources(self) -> None:
+        if self._mp3_thread is not None:
+            return
+        start_dir = str(
+            self._mp3_out_dir
+            or self.settings.value("last_dir", str(Path.home()))
+        )
+        paths, _ = QFileDialog.getOpenFileNames(
+            self,
+            "Load voice MusicXML files for MP3 export",
+            start_dir,
+            "MusicXML (*.musicxml *.xml *.mxl);;All (*.*)",
+        )
+        if not paths:
+            return
+        selected = [Path(p) for p in paths]
+        self.settings.setValue("last_dir", str(selected[0].parent))
+
+        if len(selected) == 1:
+            one = selected[0]
+            stem_low = one.stem.lower()
+            matched_suffix = next(
+                (f"_{r.lower()}" for r in ("Soprano", "Alto", "Tenor", "Bass", "SATB")
+                 if stem_low.endswith(f"_{r.lower()}")),
+                None,
+            )
+            if matched_suffix is not None:
+                prefix = one.stem[: -len(matched_suffix)].lower()
+                siblings = [
+                    child for child in sorted(one.parent.iterdir())
+                    if child.is_file()
+                    and child.suffix.lower() in {".musicxml", ".xml", ".mxl"}
+                    and child.stem.lower().startswith(f"{prefix}_")
+                ]
+                discovered = discover_voice_musicxml_files(siblings or [one])
+            elif stem_low in {"soprano", "alto", "tenor", "bass", "satb"}:
+                discovered = discover_voice_musicxml_files([one.parent])
+            else:
+                discovered = discover_voice_musicxml_files([one])
+        else:
+            discovered = discover_voice_musicxml_files(selected)
+
+        if not discovered:
+            QMessageBox.warning(self, APP_NAME, "No valid MusicXML (.musicxml / .xml / .mxl) files selected.")
+            return
+
+        self._mp3_sources = discovered
+        self._mp3_outputs = {}
+        self._mp3_out_dir = selected[0].parent
+        self.mp3_list.clear()
+        self._refresh_mp3_tab()
+        self.tabs.setCurrentIndex(3)
+        self.statusBar().showMessage(f"Loaded {len(discovered)} voice file(s) for Grand Piano MP3 export.")
+
+    def start_mp3_export(self) -> None:
+        if self._mp3_thread is not None:
+            return
+        if not self._mp3_sources:
+            QMessageBox.information(
+                self,
+                APP_NAME,
+                "No voice MusicXML files loaded. Run Convert & Split or click Load Voices… first.",
+            )
+            return
+
+        selected_files: dict[str, Path] = {}
+        for role in ("Soprano", "Alto", "Tenor", "Bass", "SATB"):
+            chk = self.mp3_voice_checks.get(role)
+            if chk is not None and chk.isChecked() and role in self._mp3_sources:
+                selected_files[role] = self._mp3_sources[role]
+        for role, path in self._mp3_sources.items():
+            if role not in self.mp3_voice_checks:
+                selected_files[role] = path
+
+        if not selected_files:
+            QMessageBox.information(
+                self,
+                APP_NAME,
+                "Select at least one available voice checkbox to export as MP3.",
+            )
+            return
+
+        self._save_settings()
+        bitrate = int(self.mp3_bitrate_combo.currentData() or 192)
+        tempo_val = int(self.mp3_tempo_spin.value())
+        tempo_bpm = tempo_val if tempo_val > 0 else None
+        out_dir = self._mp3_out_dir or next(iter(selected_files.values())).parent
+        musescore = self._find_musescore()
+        if not musescore:
+            QMessageBox.warning(
+                self,
+                APP_NAME,
+                "MuseScore 4 was not found.\n\nInstall MuseScore 4 (or set SATB_MUSESCORE) to export Grand Piano MP3 files.",
+            )
+            return
+
+        self._mp3_cancel.clear()
+        self._mp3_outputs = {}
+        self.mp3_list.clear()
+        self.mp3_stack.setCurrentIndex(0)
+
+        self._mp3_thread = QThread()
+        self._mp3_worker = Mp3ExportWorker(
+            selected_files,
+            out_dir,
+            bitrate=bitrate,
+            tempo_bpm=tempo_bpm,
+            musescore=musescore,
+            cancel_event=self._mp3_cancel,
+        )
+        self._mp3_worker.moveToThread(self._mp3_thread)
+        self._mp3_thread.started.connect(self._mp3_worker.run)
+        self._mp3_worker.progress.connect(self._on_mp3_progress)
+        self._mp3_worker.file_done.connect(self._on_mp3_file_done)
+        self._mp3_worker.finished.connect(self._on_mp3_finished)
+        self._mp3_worker.failed.connect(self._on_mp3_failed)
+        self._mp3_worker.finished.connect(self._mp3_thread.quit)
+        self._mp3_worker.failed.connect(self._mp3_thread.quit)
+        self._mp3_thread.finished.connect(self._cleanup_mp3_thread)
+
+        self.btn_export_mp3.setEnabled(False)
+        self.btn_mp3_load.setEnabled(False)
+        self.btn_mp3_cancel.setVisible(True)
+        self.mp3_progress.setVisible(True)
+        self.btn_play_mp3.setEnabled(False)
+        self.mp3_step_label.setText(f"Exporting {len(selected_files)} Grand Piano MP3 file(s)…")
+        self.statusBar().showMessage("Exporting Grand Piano MP3…")
+        self.log(f"\n── Grand Piano MP3 Export ({bitrate} kbps) ──")
+        self._mp3_thread.start()
+
+    def cancel_mp3_export(self) -> None:
+        self._mp3_cancel.set()
+        if self._mp3_worker:
+            self._mp3_worker.request_cancel()
+        self.mp3_step_label.setText("Stopping MP3 export…")
+        self.log("MP3 export cancel requested…")
+
+    def _on_mp3_progress(self, msg: str) -> None:
+        self.log(msg)
+        clean = msg.strip()
+        if clean:
+            self.mp3_step_label.setText(clean[:110])
+
+    def _on_mp3_file_done(self, role: str, path_str: str, _message: str) -> None:
+        p = Path(path_str)
+        self._mp3_outputs[role] = p
+        self.mp3_stack.setCurrentIndex(1)
+        br = int(self.mp3_bitrate_combo.currentData() or 192)
+        _add_row(
+            self.mp3_list,
+            f"{role}  —  {p.name}",
+            str(p),
+            str(p),
+            VOICE_COLORS.get(role, "#2563eb"),
+            badge=f"{role.upper()} · MP3",
+            status=f"{br} kbps",
+        )
+        self.btn_play_mp3.setEnabled(True)
+        self.btn_open_mp3_folder.setEnabled(True)
+
+    def _on_mp3_finished(self, result: dict) -> None:
+        mp3_files = result.get("mp3_files") or {}
+        errors = result.get("errors") or []
+        if result.get("out_dir"):
+            self._mp3_out_dir = Path(result["out_dir"])
+        for role, path_str in mp3_files.items():
+            if role not in self._mp3_outputs:
+                self._mp3_outputs[role] = Path(path_str)
+        if self._mp3_outputs and self.mp3_list.count() == 0:
+            self._refresh_mp3_tab(keep_status=True)
+
+        summary = f"Exported {len(mp3_files)} Grand Piano MP3 file(s)"
+        if errors:
+            summary += f" ({len(errors)} failed)"
+        self.mp3_step_label.setText(summary)
+        self.statusBar().showMessage(summary)
+        self.log(f"MP3 export done: {summary} → {self._mp3_out_dir}")
+        if errors:
+            QMessageBox.warning(self, APP_NAME, "Some MP3 exports failed:\n\n" + "\n".join(errors))
+
+    def _on_mp3_failed(self, message: str) -> None:
+        self.log(f"\nMP3 ERROR: {message}")
+        if message == "Cancelled":
+            self.mp3_step_label.setText("MP3 export cancelled.")
+            self.statusBar().showMessage("MP3 export cancelled.")
+        else:
+            self.mp3_step_label.setText("MP3 export failed — see Log")
+            self.statusBar().showMessage("MP3 export failed — see Log")
+            QMessageBox.critical(self, APP_NAME, message)
+
+    def _cleanup_mp3_thread(self) -> None:
+        if self._mp3_worker:
+            self._mp3_worker.deleteLater()
+        if self._mp3_thread:
+            self._mp3_thread.deleteLater()
+        self._mp3_worker = None
+        self._mp3_thread = None
+        self._refresh_mp3_tab(keep_status=True)
+
+    def _open_mp3_item(self, item: QListWidgetItem) -> None:
+        path = item.data(Qt.ItemDataRole.UserRole)
+        if path:
+            QDesktopServices.openUrl(QUrl.fromLocalFile(str(path)))
+
+    def play_selected_mp3(self) -> None:
+        items = self.mp3_list.selectedItems()
+        if not items and self.mp3_list.count():
+            items = [self.mp3_list.item(0)]
+        if not items:
+            QMessageBox.information(self, APP_NAME, "No MP3 file selected.")
+            return
+        self._open_mp3_item(items[0])
+
+    def open_mp3_folder(self) -> None:
+        folder = self._mp3_out_dir
+        if not folder and self._mp3_outputs:
+            folder = next(iter(self._mp3_outputs.values())).parent
+        if not folder and self._last_result:
+            v = self._last_result.get("voices_dir") or self._last_result.get("work_dir")
+            if v:
+                folder = Path(v)
+        if folder:
+            Path(folder).mkdir(parents=True, exist_ok=True)
+            QDesktopServices.openUrl(QUrl.fromLocalFile(str(folder)))
 
     def show_about(self) -> None:
         QMessageBox.about(

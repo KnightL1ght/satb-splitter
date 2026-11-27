@@ -50,8 +50,11 @@ Everything needed for offline PDF Optical Music Recognition (bundled **Audiveris
 5. **Resolve 3-Note Chords & Review Flags**
    - Click **Resolve 3-note chords…** to inspect or override how ambiguous 3-note chords were assigned between Soprano/Alto or Tenor/Bass, then re-export immediately.
    - Check the **Review Flags** tab (with live keyword filtering) for any OMR warnings, clipped notes, meter mismatches, voice crossings, or multi-bar rest checks.
-6. **Open in MuseScore 4**
-   - Click **Open SATB in MuseScore** or double-click any individual part in **Voice files** to open it in MuseScore 4 for playback, rehearsal audio (MP3/WAV) export, or final engraving tweaks.
+6. **Export Grand Piano MP3 Practice Tracks (MP3 Audio Tab)**
+   - Open the **MP3 Audio** tab (requires MuseScore 4) to render **Soprano**, **Alto**, **Tenor**, **Bass**, or **SATB (Full)** parts as `*_Piano.mp3` rehearsal tracks using **Acoustic Grand Piano** (MIDI program 1), with selectable bitrate (`128` / `192` / `320 kbps`) and optional tempo override (`BPM`).
+   - Use **Load Voices…** anytime to render existing `.musicxml` / `.mxl` / `.xml` voice files without re-running OMR.
+7. **Open in MuseScore 4**
+   - Click **Open SATB in MuseScore** or double-click any individual part in **Voice files** to open it in MuseScore 4 for playback, audio export, or final engraving tweaks.
 
 ---
 
