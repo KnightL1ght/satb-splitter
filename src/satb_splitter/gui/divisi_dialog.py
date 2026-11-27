@@ -107,21 +107,21 @@ class DivisiResolverDialog(QDialog):
         self._visible_indices: list[int] = []
 
         root = QVBoxLayout(self)
-        root.setContentsMargins(18, 16, 18, 16)
+        root.setContentsMargins(14, 14, 14, 14)
         root.setSpacing(12)
 
         # ---- Studio Header Card with Summary Badges ----
         header_card = QFrame()
         header_card.setObjectName("card")
         hl = QVBoxLayout(header_card)
-        hl.setContentsMargins(16, 14, 16, 14)
+        hl.setContentsMargins(14, 12, 14, 12)
         hl.setSpacing(10)
 
         top_row = QHBoxLayout()
         title_col = QVBoxLayout()
         title_col.setSpacing(2)
         title_lbl = QLabel("3+ Note Chord & Divisi Resolver")
-        title_lbl.setStyleSheet("font-size: 16px; font-weight: 800;")
+        title_lbl.setStyleSheet("font-size: 15px; font-weight: 700;")
         sub_lbl = QLabel(
             "Default routing keeps 1 monophonic line per voice using stem & voice-leading cues. "
             "Override individual chords or apply a rule across an entire staff pair."
@@ -136,7 +136,7 @@ class DivisiResolverDialog(QDialog):
         conf_count = len(self._choices) - ambig_count
 
         badges_row = QHBoxLayout()
-        badges_row.setSpacing(8)
+        badges_row.setSpacing(6)
         self.badge_total = QLabel(f"Total Chords: {len(self._choices)}")
         self.badge_total.setObjectName("countPill")
         self.badge_ambig = QLabel(f"Ambiguous: {ambig_count}")
@@ -191,7 +191,7 @@ class DivisiResolverDialog(QDialog):
 
         # ---- Footer Action Bar ----
         btns = QHBoxLayout()
-        btns.setSpacing(10)
+        btns.setSpacing(8)
         self.btn_apply_staff = QPushButton("Apply current row's choice to same staff")
         self.btn_apply_staff.setToolTip(
             "Copy the selected row's decision to all 3+ note chords on the same staff pair"

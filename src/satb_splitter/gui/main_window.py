@@ -53,13 +53,21 @@ ORG = "SATBSplitter"
 SUPPORTED_EXTS = {".pdf", ".musicxml", ".xml", ".mxl"} | set(IMAGE_EXTS)
 
 VOICE_COLORS = {
-    "SATB": "#2563eb",
-    "Soprano": "#7c3aed",
-    "Alto": "#db2777",
-    "Tenor": "#0d9488",
-    "Bass": "#1e40af",
+    "SATB": "#3b82f6",
+    "Soprano": "#8b5cf6",
+    "Alto": "#ec4899",
+    "Tenor": "#14b8a6",
+    "Bass": "#6366f1",
     "Review": "#d97706",
 }
+
+
+def _hex_to_rgba(hex_color: str, alpha: float) -> str:
+    h = hex_color.lstrip("#")
+    if len(h) != 6:
+        return f"rgba(59, 130, 246, {alpha})"
+    r, g, b = int(h[0:2], 16), int(h[2:4], 16), int(h[4:6], 16)
+    return f"rgba({r}, {g}, {b}, {alpha})"
 
 
 class DropList(QListWidget):
@@ -104,18 +112,18 @@ class DropZoneFrame(QFrame):
         self.setMinimumHeight(125)
 
         lay = QVBoxLayout(self)
-        lay.setContentsMargins(20, 18, 20, 18)
-        lay.setSpacing(8)
+        lay.setContentsMargins(16, 14, 16, 14)
+        lay.setSpacing(6)
         lay.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         icon_lbl = QLabel()
-        icon_lbl.setPixmap(render_icon_pixmap(44))
+        icon_lbl.setPixmap(render_icon_pixmap(32))
         icon_lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
         lay.addWidget(icon_lbl)
 
-        title = QLabel("Drop Choral PDF, Photos, or MusicXML Scores Here")
+        title = QLabel("Drop PDF, Photos, or MusicXML Scores")
         title.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        title.setStyleSheet("font-weight: 800; font-size: 14px; background: transparent;")
+        title.setStyleSheet("font-weight: 700; font-size: 13px; background: transparent;")
         lay.addWidget(title)
 
         sub = QLabel(
@@ -129,7 +137,7 @@ class DropZoneFrame(QFrame):
         btn_row = QHBoxLayout()
         btn_row.setSpacing(8)
         btn_row.addStretch()
-        btn_files = QPushButton("＋ Browse Files…")
+        btn_files = QPushButton("Add Files…")
         btn_files.setObjectName("subtle")
         btn_files.clicked.connect(on_browse_files)
         btn_folder = QPushButton("Browse Folder…")
@@ -168,29 +176,42 @@ def _card() -> QFrame:
 def _kpi_card(title: str, initial_value: str, subtitle: str, accent: str) -> tuple[QFrame, QLabel, QLabel]:
     card = QFrame()
     card.setObjectName("kpiCard")
-    outer = QHBoxLayout(card)
-    outer.setContentsMargins(12, 10, 12, 10)
-    outer.setSpacing(10)
+    col = QVBoxLayout(card)
+    col.setContentsMargins(12, 10, 12, 10)
+    col.setSpacing(2)
 
-    bar = QFrame()
-    bar.setFixedWidth(4)
-    bar.setStyleSheet(f"background: {accent}; border-radius: 2px;")
-    outer.addWidget(bar)
-
-    col = QVBoxLayout()
-    col.setContentsMargins(0, 0, 0, 0)
-    col.setSpacing(1)
+    head = QHBoxLayout()
+    head.setContentsMargins(0, 0, 0, 0)
+    head.setSpacing(6)
+    dot = QFrame()
+    dot.setFixedSize(6, 6)
+    dot.setStyleSheet(f"background: {accent}; border-radius: 3px;")
     t_lbl = QLabel(title)
     t_lbl.setObjectName("kpiTitle")
+    head.addWidget(dot)
+    head.addWidget(t_lbl)
+    head.addStretch()
+
     v_lbl = QLabel(initial_value)
     v_lbl.setObjectName("kpiValue")
     s_lbl = QLabel(subtitle)
     s_lbl.setObjectName("kpiSub")
-    col.addWidget(t_lbl)
+    col.addLayout(head)
     col.addWidget(v_lbl)
     col.addWidget(s_lbl)
-    outer.addLayout(col, stretch=1)
     return card, v_lbl, s_lbl
+
+
+def _v_divider() -> QFrame:
+    div = QFrame()
+    div.setObjectName("vDivider")
+    return div
+
+
+def _h_divider() -> QFrame:
+    div = QFrame()
+    div.setObjectName("hDivider")
+    return div
 
 
 def _row_widget(
@@ -201,38 +222,36 @@ def _row_widget(
     badge: str = "",
     status: str = "",
 ) -> QWidget:
-    """Studio two-line card row with left accent bar and optional format/voice pill."""
+    """Studio two-line card row with thin left accent bar and optional format/voice pill."""
     w = QWidget()
     w.setStyleSheet("background: transparent;")
     outer = QHBoxLayout(w)
-    outer.setContentsMargins(8, 7, 10, 7)
-    outer.setSpacing(10)
+    outer.setContentsMargins(8, 6, 10, 6)
+    outer.setSpacing(9)
 
     bar = QFrame()
-    bar.setFixedWidth(4)
-    bar.setStyleSheet(f"background: {accent}; border-radius: 2px;")
+    bar.setFixedWidth(3)
+    bar.setStyleSheet(f"background: {accent}; border-radius: 1.5px;")
     outer.addWidget(bar)
 
     body = QVBoxLayout()
     body.setContentsMargins(0, 0, 0, 0)
-    body.setSpacing(3)
+    body.setSpacing(2)
 
     top_row = QHBoxLayout()
     top_row.setContentsMargins(0, 0, 0, 0)
-    top_row.setSpacing(8)
+    top_row.setSpacing(7)
 
     if badge:
         b_lbl = QLabel(badge)
         b_lbl.setStyleSheet(
-            f"background: {accent}; color: #ffffff; font-weight: 800; font-size: 10px; "
-            "padding: 2px 7px; border-radius: 6px;"
+            f"background: {_hex_to_rgba(accent, 0.14)}; color: {accent}; "
+            "font-weight: 700; font-size: 10px; padding: 2px 6px; border-radius: 4px;"
         )
         top_row.addWidget(b_lbl)
 
     t = QLabel(title)
-    t.setStyleSheet(
-        f"color: {accent}; font-weight: 700; font-size: 13px; background: transparent;"
-    )
+    t.setStyleSheet("font-weight: 600; font-size: 12.5px; background: transparent;")
     t.setWordWrap(False)
     top_row.addWidget(t, stretch=1)
 
@@ -251,7 +270,7 @@ def _row_widget(
     body.addWidget(s)
 
     outer.addLayout(body, stretch=1)
-    w.setMinimumHeight(52)
+    w.setMinimumHeight(46)
     w.adjustSize()
     return w
 
@@ -261,7 +280,7 @@ def _add_row(
     title: str,
     subtitle: str,
     data: str,
-    accent: str = "#2563eb",
+    accent: str = "#3b82f6",
     *,
     badge: str = "",
     status: str = "",
@@ -272,7 +291,7 @@ def _add_row(
     item.setToolTip(data)
     w = _row_widget(title, subtitle, accent, badge=badge, status=status)
     width = max(listw.viewport().width() - 24, 240)
-    item.setSizeHint(QSize(width, max(w.sizeHint().height(), 56)))
+    item.setSizeHint(QSize(width, max(w.sizeHint().height(), 48)))
     if insert_at is None:
         listw.addItem(item)
     else:
@@ -286,8 +305,8 @@ class MainWindow(QMainWindow):
         super().__init__()
         self.setWindowTitle(APP_NAME)
         self.setWindowIcon(create_app_icon())
-        self.resize(1200, 860)
-        self.setMinimumSize(860, 620)
+        self.resize(1240, 840)
+        self.setMinimumSize(920, 640)
         self.settings = QSettings(ORG, APP_NAME)
         self._thread: QThread | None = None
         self._worker: PipelineWorker | None = None
@@ -357,33 +376,36 @@ class MainWindow(QMainWindow):
         root = QWidget()
         self.setCentralWidget(root)
         outer = QVBoxLayout(root)
-        outer.setContentsMargins(18, 14, 18, 14)
-        outer.setSpacing(14)
+        outer.setContentsMargins(12, 12, 12, 12)
+        outer.setSpacing(12)
 
-        # ---- Hero Header Banner ----
+        # ---- Top Command Bar ----
         hero = QFrame()
         hero.setObjectName("hero")
         hero_l = QHBoxLayout(hero)
-        hero_l.setContentsMargins(20, 16, 20, 16)
-        hero_l.setSpacing(16)
+        hero_l.setContentsMargins(14, 10, 14, 10)
+        hero_l.setSpacing(12)
 
         emblem = QLabel()
-        emblem.setPixmap(render_icon_pixmap(52))
-        emblem.setFixedSize(56, 56)
+        emblem.setPixmap(render_icon_pixmap(32))
+        emblem.setFixedSize(36, 36)
         emblem.setAlignment(Qt.AlignmentFlag.AlignCenter)
         hero_l.addWidget(emblem)
 
         hero_text = QVBoxLayout()
-        hero_text.setSpacing(4)
+        hero_text.setSpacing(1)
         t = QLabel(APP_NAME)
         t.setObjectName("heroTitleOnDark")
-        s = QLabel("Choral PDF, Photos & MusicXML  →  Soprano · Alto · Tenor · Bass  ·  MuseScore 4")
+        s = QLabel("Choral PDF, Photos & MusicXML Studio")
         s.setObjectName("heroSubOnDark")
         hero_text.addWidget(t)
         hero_text.addWidget(s)
+        hero_l.addLayout(hero_text)
+
+        hero_l.addStretch(1)
 
         pills_row = QHBoxLayout()
-        pills_row.setSpacing(8)
+        pills_row.setSpacing(6)
         self.hero_av_pill = QLabel("● Audiveris")
         self.hero_av_pill.setObjectName("heroPillOk")
         self.hero_ms_pill = QLabel("● MuseScore")
@@ -393,37 +415,29 @@ class MainWindow(QMainWindow):
         pills_row.addWidget(self.hero_av_pill)
         pills_row.addWidget(self.hero_ms_pill)
         pills_row.addWidget(self.hero_queue_pill)
-        pills_row.addStretch()
-        hero_text.addLayout(pills_row)
-        hero_l.addLayout(hero_text, stretch=1)
+        hero_l.addLayout(pills_row)
 
-        run_col = QVBoxLayout()
-        run_col.setSpacing(8)
-        top_btns = QHBoxLayout()
-        top_btns.setSpacing(8)
-        top_btns.addStretch()
-        self.btn_theme = QPushButton("🌙 Dark")
+        self.btn_theme = QPushButton("Dark Mode")
         self.btn_theme.setObjectName("ghost")
+        self.btn_theme.setMinimumHeight(32)
         self.btn_theme.setToolTip("Switch between Studio Light and Studio Dark themes (Ctrl+T)")
         self.btn_theme.clicked.connect(self.toggle_theme)
-        top_btns.addWidget(self.btn_theme)
+        hero_l.addWidget(self.btn_theme)
 
-        self.btn_cancel = QPushButton("✕  Cancel")
+        self.btn_cancel = QPushButton("Cancel")
         self.btn_cancel.setObjectName("danger")
-        self.btn_cancel.setMinimumHeight(30)
+        self.btn_cancel.setMinimumHeight(32)
         self.btn_cancel.clicked.connect(self.cancel_pipeline)
         self.btn_cancel.setVisible(False)
-        top_btns.addWidget(self.btn_cancel)
-        run_col.addLayout(top_btns)
+        hero_l.addWidget(self.btn_cancel)
 
-        self.btn_run = QPushButton("▶  Convert && Split")
+        self.btn_run = QPushButton("Convert && Split")
         self.btn_run.setObjectName("primary")
-        self.btn_run.setMinimumHeight(44)
-        self.btn_run.setMinimumWidth(196)
+        self.btn_run.setMinimumHeight(34)
+        self.btn_run.setMinimumWidth(142)
         self.btn_run.setToolTip("Run OMR (for PDFs) and split queued scores into SATB + 4 voice parts")
         self.btn_run.clicked.connect(self.start_pipeline)
-        run_col.addWidget(self.btn_run)
-        hero_l.addLayout(run_col)
+        hero_l.addWidget(self.btn_run)
         outer.addWidget(hero)
 
         # ---- Main Horizontal Splitter ----
@@ -440,8 +454,8 @@ class MainWindow(QMainWindow):
         files_card = _card()
         self._cards.append(files_card)
         fl = QVBoxLayout(files_card)
-        fl.setContentsMargins(16, 14, 16, 14)
-        fl.setSpacing(10)
+        fl.setContentsMargins(14, 12, 14, 12)
+        fl.setSpacing(8)
         files_head = QHBoxLayout()
         files_head.addWidget(self._section("Input Scores"))
         self.file_count_label = QLabel("0 files")
@@ -464,30 +478,30 @@ class MainWindow(QMainWindow):
 
         file_btns = QHBoxLayout()
         file_btns.setSpacing(5)
-        self.btn_add = QPushButton("＋ Add files…")
-        self.btn_add.setStyleSheet("padding: 6px 10px;")
+        self.btn_add = QPushButton("Add Files…")
+        self.btn_add.setStyleSheet("padding: 4px 9px;")
         self.btn_add.setToolTip("Add PDF, sheet photo, or MusicXML files to the queue (Ctrl+O)")
         self.btn_add.clicked.connect(self.browse_files)
         self.btn_add_folder = QPushButton("Add Folder…")
-        self.btn_add_folder.setStyleSheet("padding: 6px 10px;")
+        self.btn_add_folder.setStyleSheet("padding: 4px 9px;")
         self.btn_add_folder.setToolTip("Add all PDF, image, and MusicXML scores from a folder (Ctrl+Shift+O)")
         self.btn_add_folder.clicked.connect(self.browse_input_folder)
-        self.btn_move_up = QPushButton("▲")
-        self.btn_move_up.setFixedWidth(30)
-        self.btn_move_up.setStyleSheet("padding: 6px 0px;")
+        self.btn_move_up = QPushButton("↑")
+        self.btn_move_up.setFixedWidth(28)
+        self.btn_move_up.setStyleSheet("padding: 4px 0px;")
         self.btn_move_up.setToolTip("Move selected item up (reorder multi-page photo sheets)")
         self.btn_move_up.clicked.connect(self.move_selected_up)
-        self.btn_move_down = QPushButton("▼")
-        self.btn_move_down.setFixedWidth(30)
-        self.btn_move_down.setStyleSheet("padding: 6px 0px;")
+        self.btn_move_down = QPushButton("↓")
+        self.btn_move_down.setFixedWidth(28)
+        self.btn_move_down.setStyleSheet("padding: 4px 0px;")
         self.btn_move_down.setToolTip("Move selected item down (reorder multi-page photo sheets)")
         self.btn_move_down.clicked.connect(self.move_selected_down)
         self.btn_remove = QPushButton("Remove")
-        self.btn_remove.setStyleSheet("padding: 6px 10px;")
+        self.btn_remove.setStyleSheet("padding: 4px 9px;")
         self.btn_remove.setToolTip("Remove selected items from the queue")
         self.btn_remove.clicked.connect(self.remove_selected)
         self.btn_clear = QPushButton("Clear")
-        self.btn_clear.setStyleSheet("padding: 6px 10px;")
+        self.btn_clear.setStyleSheet("padding: 4px 9px;")
         self.btn_clear.setToolTip("Clear the entire input queue")
         self.btn_clear.clicked.connect(self.clear_files)
         file_btns.addWidget(self.btn_add)
@@ -503,7 +517,7 @@ class MainWindow(QMainWindow):
         opts = _card()
         self._cards.append(opts)
         ol = QVBoxLayout(opts)
-        ol.setContentsMargins(16, 12, 16, 12)
+        ol.setContentsMargins(14, 12, 14, 12)
         ol.setSpacing(6)
         ol.addWidget(self._section("Pipeline Options"))
 
@@ -531,6 +545,7 @@ class MainWindow(QMainWindow):
         out_row.addWidget(self.btn_open_out_quick)
         form.addRow("Output", out_row)
 
+        form.addRow(_h_divider())
         form.addRow(self._subsection("VOICE SPLITTING"))
         self.template_combo = QComboBox()
         self.template_combo.setToolTip("Score staff layout (Auto-detect handles 2-staff, 3-staff, and 4-staff SATB)")
@@ -567,6 +582,7 @@ class MainWindow(QMainWindow):
             self.divisi_combo.addItem(label, data)
         form.addRow("3-note chords", self.divisi_combo)
 
+        form.addRow(_h_divider())
         form.addRow(self._subsection("PDF & IMAGE OMR (AUDIVERIS)"))
         self.whiteout_spin = QDoubleSpinBox()
         self.whiteout_spin.setRange(0.0, 40.0)
@@ -612,7 +628,7 @@ class MainWindow(QMainWindow):
         av_row.setSpacing(6)
         av_row.addWidget(self.audiveris_edit, stretch=1)
         self.btn_av = QPushButton("…")
-        self.btn_av.setFixedWidth(40)
+        self.btn_av.setFixedWidth(36)
         self.btn_av.setToolTip("Browse for Audiveris.exe")
         self.btn_av.clicked.connect(self.browse_audiveris)
         av_row.addWidget(self.btn_av)
@@ -627,7 +643,7 @@ class MainWindow(QMainWindow):
         self.progress = QProgressBar()
         self.progress.setRange(0, 0)
         self.progress.setTextVisible(False)
-        self.progress.setFixedHeight(8)
+        self.progress.setFixedHeight(6)
         self.progress.setVisible(False)
         left_l.addWidget(self.progress)
 
@@ -637,46 +653,53 @@ class MainWindow(QMainWindow):
         right_l.setContentsMargins(0, 0, 0, 0)
         right_l.setSpacing(12)
 
-        # Top KPI Summary Bar
-        kpi_row = QHBoxLayout()
-        kpi_row.setSpacing(10)
+        # Unified Metrics Strip
+        metrics_bar = QFrame()
+        metrics_bar.setObjectName("metricsBar")
+        self._cards.append(metrics_bar)
+        kpi_row = QHBoxLayout(metrics_bar)
+        kpi_row.setContentsMargins(0, 0, 0, 0)
+        kpi_row.setSpacing(0)
         self.kpi_scores, self.kpi_scores_val, self.kpi_scores_sub = _kpi_card(
-            "Scores", "0", "0 in queue", "#2563eb"
+            "Scores", "0", "0 in queue", VOICE_COLORS["SATB"]
         )
         self.kpi_voices, self.kpi_voices_val, self.kpi_voices_sub = _kpi_card(
-            "Voice Files", "0", "SATB + S/A/T/B", "#7c3aed"
+            "Voice Files", "0", "SATB + S/A/T/B", VOICE_COLORS["Soprano"]
         )
         self.kpi_divisi, self.kpi_divisi_val, self.kpi_divisi_sub = _kpi_card(
-            "3+ Note Chords", "0", "0 ambiguous", "#0d9488"
+            "3+ Note Chords", "0", "0 ambiguous", VOICE_COLORS["Tenor"]
         )
         self.kpi_flags, self.kpi_flags_val, self.kpi_flags_sub = _kpi_card(
-            "Review Flags", "0", "Clean", "#d97706"
+            "Review Flags", "0", "Clean", VOICE_COLORS["Review"]
         )
-        for kc in (self.kpi_scores, self.kpi_voices, self.kpi_divisi, self.kpi_flags):
+        kpi_cards = (self.kpi_scores, self.kpi_voices, self.kpi_divisi, self.kpi_flags)
+        for idx, kc in enumerate(kpi_cards):
             self._cards.append(kc)
             kpi_row.addWidget(kc, stretch=1)
-        right_l.addLayout(kpi_row)
+            if idx < len(kpi_cards) - 1:
+                kpi_row.addWidget(_v_divider())
+        right_l.addWidget(metrics_bar)
 
         # Workspace Tab Card
         right_card = _card()
         self._cards.append(right_card)
         rc = QVBoxLayout(right_card)
-        rc.setContentsMargins(12, 12, 12, 12)
+        rc.setContentsMargins(12, 10, 12, 12)
         self.tabs = QTabWidget()
 
         # ---- Tab 0: Pipeline Log ----
         log_tab = QWidget()
         log_l = QVBoxLayout(log_tab)
-        log_l.setContentsMargins(8, 8, 8, 8)
+        log_l.setContentsMargins(4, 10, 4, 4)
         log_l.setSpacing(8)
 
         log_bar = QHBoxLayout()
         self.step_label = QLabel("Ready — add PDF, sheet photos, or MusicXML files to start.")
         self.step_label.setObjectName("muted")
-        self.btn_copy_log = QPushButton("Copy log")
+        self.btn_copy_log = QPushButton("Copy Log")
         self.btn_copy_log.setObjectName("subtle")
         self.btn_copy_log.clicked.connect(self._copy_log)
-        self.btn_clear_log = QPushButton("Clear log")
+        self.btn_clear_log = QPushButton("Clear Log")
         self.btn_clear_log.setObjectName("subtle")
         self.btn_clear_log.clicked.connect(self.log_view_clear)
         log_bar.addWidget(self.step_label, stretch=1)
@@ -689,28 +712,17 @@ class MainWindow(QMainWindow):
         self.log_view.setReadOnly(True)
         self.log_view.setPlaceholderText("Pipeline log will appear here…")
         log_l.addWidget(self.log_view, stretch=1)
-        self.tabs.addTab(log_tab, "  Log  ")
+        self.tabs.addTab(log_tab, "Log")
 
         # ---- Tab 1: Voice Files ----
         results_w = QWidget()
         results_l = QVBoxLayout(results_w)
-        results_l.setContentsMargins(8, 8, 8, 8)
+        results_l.setContentsMargins(4, 10, 4, 4)
         results_l.setSpacing(8)
 
-        legend_row = QHBoxLayout()
-        legend_row.setSpacing(6)
-        hint = QLabel("Double-click any part to open in MuseScore:")
+        hint = QLabel("Double-click any voice part or proof score to open in MuseScore 4")
         hint.setObjectName("muted")
-        legend_row.addWidget(hint)
-        for role_name, hex_c in VOICE_COLORS.items():
-            chip = QLabel(role_name)
-            chip.setStyleSheet(
-                f"background: {hex_c}; color: #ffffff; font-weight: 700; font-size: 10px; "
-                "padding: 2px 8px; border-radius: 6px;"
-            )
-            legend_row.addWidget(chip)
-        legend_row.addStretch()
-        results_l.addLayout(legend_row)
+        results_l.addWidget(hint)
 
         self.result_stack = QStackedWidget()
         empty_res = QLabel(
@@ -734,12 +746,12 @@ class MainWindow(QMainWindow):
         self.btn_open_satb.setObjectName("success")
         self.btn_open_satb.clicked.connect(self.open_satb_musescore)
         self.btn_open_satb.setEnabled(False)
-        self.btn_open_voice = QPushButton("Open selected")
+        self.btn_open_voice = QPushButton("Open Selected")
         self.btn_open_voice.clicked.connect(self.open_selected_result)
-        self.btn_open_out = QPushButton("Open output folder")
+        self.btn_open_out = QPushButton("Open Output Folder")
         self.btn_open_out.clicked.connect(self.open_output_folder)
         self.btn_open_out.setEnabled(False)
-        self.btn_resolve_divisi = QPushButton("Resolve 3-note chords…")
+        self.btn_resolve_divisi = QPushButton("Resolve 3-Note Chords…")
         self.btn_resolve_divisi.clicked.connect(self.open_divisi_resolver)
         self.btn_resolve_divisi.setEnabled(False)
         res_btns.addWidget(self.btn_open_satb)
@@ -748,12 +760,12 @@ class MainWindow(QMainWindow):
         res_btns.addWidget(self.btn_resolve_divisi)
         res_btns.addStretch()
         results_l.addLayout(res_btns)
-        self.tabs.addTab(results_w, "  Voice files  ")
+        self.tabs.addTab(results_w, "Voice Files")
 
         # ---- Tab 2: Review Flags ----
         flags_tab = QWidget()
         flags_l = QVBoxLayout(flags_tab)
-        flags_l.setContentsMargins(8, 8, 8, 8)
+        flags_l.setContentsMargins(4, 10, 4, 4)
         flags_l.setSpacing(8)
 
         flags_bar = QHBoxLayout()
@@ -774,12 +786,12 @@ class MainWindow(QMainWindow):
         self.flags_view.setReadOnly(True)
         self.flags_view.setPlaceholderText("Review flags (ambiguous measures) appear here.")
         flags_l.addWidget(self.flags_view, stretch=1)
-        self.tabs.addTab(flags_tab, "  Review flags  ")
+        self.tabs.addTab(flags_tab, "Review Flags")
 
         # ---- Tab 3: MP3 Audio (Grand Piano) ----
         mp3_tab = QWidget()
         mp3_l = QVBoxLayout(mp3_tab)
-        mp3_l.setContentsMargins(8, 8, 8, 8)
+        mp3_l.setContentsMargins(4, 10, 4, 4)
         mp3_l.setSpacing(10)
 
         mp3_top = QHBoxLayout()
@@ -793,7 +805,7 @@ class MainWindow(QMainWindow):
         mp3_l.addLayout(mp3_top)
 
         voices_row = QHBoxLayout()
-        voices_row.setSpacing(12)
+        voices_row.setSpacing(14)
         voices_lbl = QLabel("Voices:")
         voices_lbl.setObjectName("muted")
         voices_row.addWidget(voices_lbl)
@@ -836,13 +848,13 @@ class MainWindow(QMainWindow):
         self.btn_mp3_load.setToolTip("Load existing split MusicXML (.musicxml / .xml / .mxl) files for MP3 export")
         self.btn_mp3_load.clicked.connect(self.load_mp3_sources)
 
-        self.btn_export_mp3 = QPushButton("🎹  Export Grand Piano MP3")
+        self.btn_export_mp3 = QPushButton("Export Grand Piano MP3")
         self.btn_export_mp3.setObjectName("primary")
         self.btn_export_mp3.setToolTip("Export checked voice parts as Grand Piano MP3 audio via MuseScore 4")
         self.btn_export_mp3.clicked.connect(self.start_mp3_export)
         self.btn_export_mp3.setEnabled(False)
 
-        self.btn_mp3_cancel = QPushButton("✕  Stop")
+        self.btn_mp3_cancel = QPushButton("Stop")
         self.btn_mp3_cancel.setObjectName("danger")
         self.btn_mp3_cancel.clicked.connect(self.cancel_mp3_export)
         self.btn_mp3_cancel.setVisible(False)
@@ -889,18 +901,18 @@ class MainWindow(QMainWindow):
 
         mp3_btns = QHBoxLayout()
         mp3_btns.setSpacing(6)
-        self.btn_play_mp3 = QPushButton("▶  Play selected")
+        self.btn_play_mp3 = QPushButton("Play Selected")
         self.btn_play_mp3.setObjectName("success")
         self.btn_play_mp3.clicked.connect(self.play_selected_mp3)
         self.btn_play_mp3.setEnabled(False)
-        self.btn_open_mp3_folder = QPushButton("Open MP3 folder")
+        self.btn_open_mp3_folder = QPushButton("Open MP3 Folder")
         self.btn_open_mp3_folder.clicked.connect(self.open_mp3_folder)
         self.btn_open_mp3_folder.setEnabled(False)
         mp3_btns.addWidget(self.btn_play_mp3)
         mp3_btns.addWidget(self.btn_open_mp3_folder)
         mp3_btns.addStretch()
         mp3_l.addLayout(mp3_btns)
-        self.tabs.addTab(mp3_tab, "  MP3 Audio  ")
+        self.tabs.addTab(mp3_tab, "MP3 Audio")
 
         rc.addWidget(self.tabs)
         right_l.addWidget(right_card, stretch=1)
@@ -923,7 +935,7 @@ class MainWindow(QMainWindow):
 
     def _apply_theme_to_widgets(self) -> None:
         is_dark = self._theme == "dark"
-        self.btn_theme.setText("☀ Light" if is_dark else "🌙 Dark")
+        self.btn_theme.setText("Light Mode" if is_dark else "Dark Mode")
         for card in self._cards:
             apply_card_shadow(card, self._theme)
 
@@ -1036,30 +1048,40 @@ class MainWindow(QMainWindow):
         clean = {str(k): str(v) for k, v in overrides.items() if v and v != "auto"}
         p.write_text(json.dumps(clean, indent=2, sort_keys=True), encoding="utf-8")
 
+    @staticmethod
+    def _repolish(widget: QWidget) -> None:
+        style = widget.style()
+        if style is not None:
+            style.unpolish(widget)
+            style.polish(widget)
+
     def _refresh_audiveris_status(self) -> None:
         found = find_audiveris(self.audiveris_edit.text().strip() or None)
         c = get_theme_colors(self._theme)
         if found:
             parent_tag = found.parent.name
-            self.audiveris_status.setText(f"● Audiveris ready  ·  {found}")
+            self.audiveris_status.setText(f"● Audiveris ready · {found.name} ({parent_tag})")
+            self.audiveris_status.setToolTip(str(found))
             self.audiveris_status.setStyleSheet(
-                f"background: {c['success_soft']}; color: {c['success']}; "
-                f"border: 1px solid {c['success_border']}; border-radius: 8px; "
-                "padding: 5px 10px; font-weight: 700; font-size: 11px;"
+                f"background: {c['surface_2']}; color: {c['success']}; "
+                f"border: 1px solid {c['border']}; border-radius: 5px; "
+                "padding: 4px 8px; font-weight: 600; font-size: 11px;"
             )
             self.hero_av_pill.setText(f"● Audiveris ({parent_tag})")
             self.hero_av_pill.setObjectName("heroPillOk")
         else:
             self.audiveris_status.setText(
-                "○ Audiveris not found — PDF OMR unavailable. MusicXML splitting still works."
+                "○ Audiveris not found — MusicXML splitting still available"
             )
+            self.audiveris_status.setToolTip("")
             self.audiveris_status.setStyleSheet(
                 f"background: {c['danger_soft']}; color: {c['danger']}; "
-                f"border: 1px solid {c['danger_border']}; border-radius: 8px; "
-                "padding: 5px 10px; font-weight: 700; font-size: 11px;"
+                f"border: 1px solid {c['danger_border']}; border-radius: 5px; "
+                "padding: 4px 8px; font-weight: 600; font-size: 11px;"
             )
             self.hero_av_pill.setText("○ Audiveris Missing")
             self.hero_av_pill.setObjectName("heroPillWarn")
+        self._repolish(self.hero_av_pill)
 
         ms = self._find_musescore()
         if ms:
@@ -1069,8 +1091,8 @@ class MainWindow(QMainWindow):
             self.mp3_ms_badge.setObjectName("statusPillOk")
             self.mp3_ms_badge.setStyleSheet(
                 f"background: {c['success_soft']}; color: {c['success']}; "
-                f"border: 1px solid {c['success_border']}; border-radius: 8px; "
-                "padding: 4px 10px; font-weight: 700; font-size: 11px;"
+                f"border: 1px solid {c['success_border']}; border-radius: 5px; "
+                "padding: 3px 8px; font-weight: 600; font-size: 11px;"
             )
         else:
             self.hero_ms_pill.setText("○ MuseScore Not Found")
@@ -1079,9 +1101,10 @@ class MainWindow(QMainWindow):
             self.mp3_ms_badge.setObjectName("statusPillWarn")
             self.mp3_ms_badge.setStyleSheet(
                 f"background: {c['warning_soft']}; color: {c['warning']}; "
-                f"border: 1px solid {c['warning_border']}; border-radius: 8px; "
-                "padding: 4px 10px; font-weight: 700; font-size: 11px;"
+                f"border: 1px solid {c['warning_border']}; border-radius: 5px; "
+                "padding: 3px 8px; font-weight: 600; font-size: 11px;"
             )
+        self._repolish(self.hero_ms_pill)
 
     def add_paths(self, paths: list[Path]) -> None:
         for p in paths:
@@ -1313,7 +1336,7 @@ class MainWindow(QMainWindow):
             self._mp3_out_dir = None
             self._refresh_mp3_tab()
         self.btn_run.setEnabled(False)
-        self.btn_run.setText("⏳  Working…")
+        self.btn_run.setText("Working…")
         self.btn_cancel.setVisible(True)
         self.btn_open_out.setEnabled(False)
         self.btn_open_satb.setEnabled(False)
@@ -1444,7 +1467,7 @@ class MainWindow(QMainWindow):
 
     def _idle_buttons(self) -> None:
         self.btn_run.setEnabled(True)
-        self.btn_run.setText("▶  Convert && Split")
+        self.btn_run.setText("Convert && Split")
         self.btn_cancel.setVisible(False)
         self.progress.setVisible(False)
 
@@ -1502,7 +1525,7 @@ class MainWindow(QMainWindow):
         self.results_list.clear()
         self.flags_view.clear()
         self.btn_run.setEnabled(False)
-        self.btn_run.setText("⏳  Working…")
+        self.btn_run.setText("Working…")
         self.btn_resolve_divisi.setEnabled(False)
         self.progress.setVisible(True)
         self.step_label.setText(f"Re-exporting {input_path.name}…")

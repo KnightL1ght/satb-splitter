@@ -2,113 +2,195 @@
 
 from __future__ import annotations
 
+import struct
+import tempfile
+import zlib
+from pathlib import Path
+
 from PySide6.QtGui import QColor, QFont, QPalette
-from PySide6.QtWidgets import QApplication, QGraphicsDropShadowEffect, QWidget
+from PySide6.QtWidgets import QApplication, QWidget
+
+
+def _encode_rgba_png(width: int, height: int, rgba: bytes) -> bytes:
+    """Encode raw RGBA bytes as a minimal PNG without requiring QApplication."""
+    def chunk(tag: bytes, data: bytes) -> bytes:
+        crc = zlib.crc32(tag + data) & 0xFFFFFFFF
+        return struct.pack("!I", len(data)) + tag + data + struct.pack("!I", crc)
+
+    raw_rows = b"".join(
+        b"\x00" + rgba[y * width * 4 : (y + 1) * width * 4] for y in range(height)
+    )
+    ihdr = struct.pack("!IIBBBBB", width, height, 8, 6, 0, 0, 0)
+    return (
+        b"\x89PNG\r\n\x1a\n"
+        + chunk(b"IHDR", ihdr)
+        + chunk(b"IDAT", zlib.compress(raw_rows, 9))
+        + chunk(b"IEND", b"")
+    )
+
+
+def _dist_seg(px: float, py: float, x1: float, y1: float, x2: float, y2: float) -> float:
+    dx, dy = x2 - x1, y2 - y1
+    denom = dx * dx + dy * dy
+    t = 0.0 if denom == 0 else max(0.0, min(1.0, ((px - x1) * dx + (py - y1) * dy) / denom))
+    nx, ny = x1 + t * dx, y1 + t * dy
+    return ((px - nx) ** 2 + (py - ny) ** 2) ** 0.5
+
+
+def _ensure_ui_icons(theme: str, color_hex: str) -> dict[str, str]:
+    """Write tiny cached PNG indicators for checkboxes, combos, and spinboxes."""
+    out_dir = Path(tempfile.gettempdir()) / "satb_splitter_ui_icons"
+    out_dir.mkdir(parents=True, exist_ok=True)
+    h = color_hex.lstrip("#")
+    r, g, b = int(h[0:2], 16), int(h[2:4], 16), int(h[4:6], 16)
+
+    def render_segs(size: int, segs: list[tuple[float, float, float, float]], rgb: tuple[int, int, int], stroke: float) -> bytes:
+        buf = bytearray(size * size * 4)
+        for y in range(size):
+            for x in range(size):
+                d = min(_dist_seg(x + 0.5, y + 0.5, *s) for s in segs)
+                alpha = max(0.0, min(1.0, stroke + 0.6 - d))
+                idx = (y * size + x) * 4
+                buf[idx] = rgb[0]
+                buf[idx + 1] = rgb[1]
+                buf[idx + 2] = rgb[2]
+                buf[idx + 3] = int(round(alpha * 255))
+        return _encode_rgba_png(size, size, bytes(buf))
+
+    specs = {
+        "check": (
+            out_dir / "check_white.png",
+            14,
+            [(3.0, 7.2, 5.8, 10.2), (5.8, 10.2, 11.2, 4.0)],
+            (255, 255, 255),
+            1.15,
+        ),
+        "chev_down": (
+            out_dir / f"chev_down_{theme}.png",
+            12,
+            [(2.5, 4.2, 6.0, 7.8), (6.0, 7.8, 9.5, 4.2)],
+            (r, g, b),
+            1.0,
+        ),
+        "chev_up": (
+            out_dir / f"chev_up_{theme}.png",
+            12,
+            [(2.5, 7.8, 6.0, 4.2), (6.0, 4.2, 9.5, 7.8)],
+            (r, g, b),
+            1.0,
+        ),
+    }
+    urls: dict[str, str] = {}
+    for key, (path, size, segs, rgb, stroke) in specs.items():
+        if not path.is_file():
+            path.write_bytes(render_segs(size, segs, rgb, stroke))
+        urls[key] = path.as_posix()
+    return urls
 
 
 # Default Light brand constants (kept for backward compatibility)
-BG = "#f1f5f9"
+BG = "#f4f4f6"
 SURFACE = "#ffffff"
-SURFACE_2 = "#f8fafc"
-SURFACE_3 = "#eef2f7"
-BORDER = "#e2e8f0"
-BORDER_STRONG = "#cbd5e1"
-TEXT = "#0f172a"
-TEXT_MUTED = "#64748b"
+SURFACE_2 = "#f8f8fa"
+SURFACE_3 = "#f0f0f3"
+BORDER = "#e4e4e7"
+BORDER_STRONG = "#d4d4d8"
+TEXT = "#09090b"
+TEXT_MUTED = "#71717a"
 PRIMARY = "#2563eb"
 PRIMARY_HOVER = "#1d4ed8"
-PRIMARY_SOFT = "#dbeafe"
-SUCCESS = "#15803d"
-SUCCESS_SOFT = "#dcfce7"
+PRIMARY_SOFT = "#eff6ff"
+SUCCESS = "#059669"
+SUCCESS_SOFT = "#ecfdf5"
 WARNING = "#b45309"
-WARNING_SOFT = "#fef3c7"
-DANGER = "#b91c1c"
-DANGER_SOFT = "#fee2e2"
-ACCENT_SA = "#7c3aed"
-ACCENT_TB = "#0d9488"
+WARNING_SOFT = "#fffbeb"
+DANGER = "#dc2626"
+DANGER_SOFT = "#fef2f2"
+ACCENT_SA = "#8b5cf6"
+ACCENT_TB = "#14b8a6"
 
 THEMES: dict[str, dict[str, str]] = {
     "light": {
         "name": "light",
-        "bg": "#f1f5f9",
+        "bg": "#f4f4f6",
         "surface": "#ffffff",
-        "surface_2": "#f8fafc",
-        "surface_3": "#f1f5f9",
-        "border": "#e2e8f0",
-        "border_strong": "#cbd5e1",
-        "text": "#0f172a",
-        "text_secondary": "#334155",
-        "text_muted": "#64748b",
-        "disabled_text": "#94a3b8",
-        "disabled_bg": "#f1f5f9",
+        "surface_2": "#f8f8fa",
+        "surface_3": "#f0f0f3",
+        "border": "#e4e4e7",
+        "border_strong": "#d4d4d8",
+        "text": "#09090b",
+        "text_secondary": "#3f3f46",
+        "text_muted": "#71717a",
+        "disabled_text": "#a1a1aa",
+        "disabled_bg": "#f4f4f5",
         "primary": "#2563eb",
         "primary_hover": "#1d4ed8",
-        "primary_soft": "#dbeafe",
-        "primary_soft_text": "#1e40af",
-        "success": "#15803d",
-        "success_soft": "#dcfce7",
-        "success_border": "#86efac",
+        "primary_soft": "#eff6ff",
+        "primary_soft_text": "#1d4ed8",
+        "success": "#059669",
+        "success_soft": "#ecfdf5",
+        "success_border": "#a7f3d0",
         "warning": "#b45309",
-        "warning_soft": "#fef3c7",
-        "warning_border": "#fcd34d",
-        "danger": "#b91c1c",
-        "danger_soft": "#fee2e2",
-        "danger_border": "#fca5a5",
-        "hero_stop0": "#1e1b4b",
-        "hero_stop1": "#1d4ed8",
-        "hero_stop2": "#6d28d9",
-        "hero_border": "#312e81",
-        "row_bg": "#f8fafc",
-        "row_hover": "#eff6ff",
-        "row_selected": "#dbeafe",
-        "drop_bg": "#f8fafc",
-        "drop_border": "#94a3b8",
-        "log_bg": "#0f172a",
-        "log_text": "#e2e8f0",
-        "log_border": "#1e293b",
-        "scrollbar": "#cbd5e1",
-        "scrollbar_hover": "#94a3b8",
+        "warning_soft": "#fffbeb",
+        "warning_border": "#fde68a",
+        "danger": "#dc2626",
+        "danger_soft": "#fef2f2",
+        "danger_border": "#fecaca",
+        "hero_stop0": "#ffffff",
+        "hero_stop1": "#ffffff",
+        "hero_stop2": "#ffffff",
+        "hero_border": "#e4e4e7",
+        "row_bg": "#fafafa",
+        "row_hover": "#f4f4f5",
+        "row_selected": "#eff6ff",
+        "drop_bg": "#fafafa",
+        "drop_border": "#d4d4d8",
+        "log_bg": "#fafafa",
+        "log_text": "#18181b",
+        "log_border": "#e4e4e7",
+        "scrollbar": "#d4d4d8",
+        "scrollbar_hover": "#a1a1aa",
     },
     "dark": {
         "name": "dark",
-        "bg": "#0b1120",
-        "surface": "#111827",
-        "surface_2": "#1e293b",
-        "surface_3": "#0f172a",
-        "border": "#1f2937",
-        "border_strong": "#334155",
-        "text": "#f8fafc",
-        "text_secondary": "#cbd5e1",
-        "text_muted": "#94a3b8",
-        "disabled_text": "#475569",
-        "disabled_bg": "#0f172a",
+        "bg": "#09090b",
+        "surface": "#111114",
+        "surface_2": "#18181b",
+        "surface_3": "#202024",
+        "border": "#27272a",
+        "border_strong": "#3f3f46",
+        "text": "#fafafa",
+        "text_secondary": "#d4d4d8",
+        "text_muted": "#a1a1aa",
+        "disabled_text": "#52525b",
+        "disabled_bg": "#141417",
         "primary": "#3b82f6",
         "primary_hover": "#2563eb",
-        "primary_soft": "#1e3a8a",
-        "primary_soft_text": "#bfdbfe",
-        "success": "#22c55e",
+        "primary_soft": "#172554",
+        "primary_soft_text": "#93c5fd",
+        "success": "#10b981",
         "success_soft": "#052e16",
-        "success_border": "#166534",
+        "success_border": "#14532d",
         "warning": "#f59e0b",
-        "warning_soft": "#451a03",
-        "warning_border": "#92400e",
-        "danger": "#ef4444",
+        "warning_soft": "#422006",
+        "warning_border": "#713f12",
+        "danger": "#f87171",
         "danger_soft": "#450a0a",
-        "danger_border": "#991b1b",
-        "hero_stop0": "#0f172a",
-        "hero_stop1": "#1e1b4b",
-        "hero_stop2": "#4c1d95",
-        "hero_border": "#312e81",
-        "row_bg": "#1e293b",
-        "row_hover": "#263449",
-        "row_selected": "#1e3a8a",
-        "drop_bg": "#0f172a",
-        "drop_border": "#334155",
-        "log_bg": "#090d16",
-        "log_text": "#e2e8f0",
-        "log_border": "#1e293b",
-        "scrollbar": "#334155",
-        "scrollbar_hover": "#475569",
+        "danger_border": "#7f1d1d",
+        "hero_stop0": "#111114",
+        "hero_stop1": "#111114",
+        "hero_stop2": "#111114",
+        "hero_border": "#27272a",
+        "row_bg": "#18181b",
+        "row_hover": "#202026",
+        "row_selected": "#172554",
+        "drop_bg": "#141417",
+        "drop_border": "#3f3f46",
+        "log_bg": "#0a0a0c",
+        "log_text": "#d4d4d8",
+        "log_border": "#27272a",
+        "scrollbar": "#3f3f46",
+        "scrollbar_hover": "#52525b",
     },
 }
 
@@ -122,6 +204,7 @@ def get_theme_colors(theme: str = "light") -> dict[str, str]:
 def build_stylesheet(theme: str = "light") -> str:
     """Compile the complete Qt stylesheet for the requested theme."""
     c = get_theme_colors(theme)
+    icons = _ensure_ui_icons(c["name"], c["text_muted"])
     return f"""
 /* ---- Global ---- */
 QMainWindow, QDialog {{
@@ -130,20 +213,20 @@ QMainWindow, QDialog {{
 }}
 QWidget {{
     color: {c['text']};
-    font-size: 13px;
+    font-size: 12.5px;
 }}
 QLabel {{
     color: {c['text']};
     background: transparent;
 }}
 QLabel#heroTitle {{
-    font-size: 22px;
-    font-weight: 800;
+    font-size: 16px;
+    font-weight: 700;
     color: {c['text']};
-    letter-spacing: -0.4px;
+    letter-spacing: -0.2px;
 }}
 QLabel#heroSub {{
-    font-size: 13px;
+    font-size: 12px;
     color: {c['text_muted']};
 }}
 QLabel#muted {{
@@ -152,87 +235,102 @@ QLabel#muted {{
 }}
 QLabel#badgeOk {{
     color: {c['success']};
-    font-weight: 700;
+    font-weight: 600;
     font-size: 12px;
 }}
 QLabel#badgeBad {{
     color: {c['danger']};
-    font-weight: 700;
+    font-weight: 600;
     font-size: 12px;
 }}
 QLabel#sectionTitle {{
-    font-size: 12px;
-    font-weight: 800;
+    font-size: 11px;
+    font-weight: 700;
     color: {c['text']};
     text-transform: uppercase;
     letter-spacing: 0.7px;
 }}
 QLabel#subSectionTitle {{
     font-size: 10px;
-    font-weight: 800;
+    font-weight: 700;
     color: {c['text_muted']};
     text-transform: uppercase;
-    letter-spacing: 0.9px;
-    padding-top: 4px;
+    letter-spacing: 0.7px;
+    padding-top: 2px;
 }}
 QLabel#countPill {{
     background: {c['primary_soft']};
     color: {c['primary_soft_text']};
-    font-weight: 700;
+    font-weight: 600;
     font-size: 11px;
-    padding: 3px 10px;
-    border-radius: 10px;
+    padding: 2px 8px;
+    border-radius: 4px;
 }}
 QLabel#statusPillOk {{
     background: {c['success_soft']};
     color: {c['success']};
     border: 1px solid {c['success_border']};
-    font-weight: 700;
+    font-weight: 600;
     font-size: 11px;
-    padding: 5px 10px;
-    border-radius: 8px;
+    padding: 3px 8px;
+    border-radius: 4px;
 }}
 QLabel#statusPillBad {{
     background: {c['danger_soft']};
     color: {c['danger']};
     border: 1px solid {c['danger_border']};
-    font-weight: 700;
+    font-weight: 600;
     font-size: 11px;
-    padding: 5px 10px;
-    border-radius: 8px;
+    padding: 3px 8px;
+    border-radius: 4px;
 }}
 QLabel#statusPillWarn {{
     background: {c['warning_soft']};
     color: {c['warning']};
     border: 1px solid {c['warning_border']};
-    font-weight: 700;
+    font-weight: 600;
     font-size: 11px;
-    padding: 5px 10px;
-    border-radius: 8px;
+    padding: 3px 8px;
+    border-radius: 4px;
 }}
 
-/* ---- Cards & Hero ---- */
+/* ---- Cards, Metrics & Hero ---- */
 QFrame#card {{
     background: {c['surface']};
     border: 1px solid {c['border']};
-    border-radius: 14px;
+    border-radius: 8px;
 }}
-QFrame#kpiCard {{
+QFrame#metricsBar {{
     background: {c['surface']};
     border: 1px solid {c['border']};
-    border-radius: 12px;
+    border-radius: 8px;
+}}
+QFrame#kpiCard {{
+    background: transparent;
+    border: none;
+    border-radius: 0px;
+}}
+QFrame#vDivider {{
+    background: {c['border']};
+    max-width: 1px;
+    min-width: 1px;
+}}
+QFrame#hDivider {{
+    background: {c['border']};
+    max-height: 1px;
+    min-height: 1px;
 }}
 QLabel#kpiTitle {{
     color: {c['text_muted']};
-    font-size: 11px;
+    font-size: 10px;
     font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 0.6px;
+    letter-spacing: 0.7px;
 }}
 QLabel#kpiValue {{
     color: {c['text']};
-    font-size: 20px;
-    font-weight: 800;
+    font-size: 18px;
+    font-weight: 700;
 }}
 QLabel#kpiSub {{
     color: {c['text_muted']};
@@ -240,68 +338,68 @@ QLabel#kpiSub {{
 }}
 QFrame#dropZone {{
     background: {c['drop_bg']};
-    border: 2px dashed {c['drop_border']};
-    border-radius: 12px;
+    border: 1px dashed {c['drop_border']};
+    border-radius: 8px;
 }}
 QFrame#hero {{
-    background: qlineargradient(x1:0, y1:0, x2:1, y2:1,
-        stop:0 {c['hero_stop0']}, stop:0.52 {c['hero_stop1']}, stop:1 {c['hero_stop2']});
-    border: 1px solid {c['hero_border']};
-    border-radius: 16px;
+    background: {c['surface']};
+    border: 1px solid {c['border']};
+    border-radius: 8px;
 }}
 QLabel#heroTitleOnDark {{
-    color: #ffffff;
+    color: {c['text']};
     background: transparent;
-    font-size: 22px;
-    font-weight: 800;
-    letter-spacing: -0.3px;
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: -0.2px;
 }}
 QLabel#heroSubOnDark {{
-    color: rgba(255, 255, 255, 0.88);
+    color: {c['text_muted']};
     background: transparent;
     font-size: 12px;
-    font-weight: 500;
+    font-weight: 400;
 }}
 QLabel#heroPillOk {{
-    background: rgba(34, 197, 94, 0.22);
-    color: #bbf7d0;
-    border: 1px solid rgba(134, 239, 172, 0.45);
-    border-radius: 10px;
-    padding: 3px 10px;
+    background: {c['success_soft']};
+    color: {c['success']};
+    border: 1px solid {c['success_border']};
+    border-radius: 5px;
+    padding: 3px 8px;
     font-size: 11px;
-    font-weight: 700;
+    font-weight: 600;
 }}
 QLabel#heroPillWarn {{
-    background: rgba(245, 158, 11, 0.24);
-    color: #fde68a;
-    border: 1px solid rgba(252, 211, 77, 0.45);
-    border-radius: 10px;
-    padding: 3px 10px;
+    background: {c['warning_soft']};
+    color: {c['warning']};
+    border: 1px solid {c['warning_border']};
+    border-radius: 5px;
+    padding: 3px 8px;
     font-size: 11px;
-    font-weight: 700;
+    font-weight: 600;
 }}
 QLabel#heroPillInfo {{
-    background: rgba(255, 255, 255, 0.14);
-    color: #f8fafc;
-    border: 1px solid rgba(255, 255, 255, 0.28);
-    border-radius: 10px;
-    padding: 3px 10px;
+    background: {c['surface_2']};
+    color: {c['text_secondary']};
+    border: 1px solid {c['border']};
+    border-radius: 5px;
+    padding: 3px 8px;
     font-size: 11px;
-    font-weight: 700;
+    font-weight: 600;
 }}
 
 /* ---- Buttons ---- */
 QPushButton {{
-    background: {c['surface']};
+    background: {c['surface_2']};
     color: {c['text']};
     border: 1px solid {c['border_strong']};
-    border-radius: 9px;
-    padding: 7px 14px;
+    border-radius: 6px;
+    padding: 5px 12px;
+    font-size: 12px;
     font-weight: 600;
     min-height: 18px;
 }}
 QPushButton:hover {{
-    background: {c['surface_2']};
+    background: {c['surface_3']};
     border-color: {c['primary']};
 }}
 QPushButton:pressed {{
@@ -313,56 +411,61 @@ QPushButton:disabled {{
     border-color: {c['border']};
 }}
 QPushButton#primary {{
-    background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
-        stop:0 #2563eb, stop:1 #4f46e5);
+    background: {c['primary']};
     color: #ffffff;
-    border: 1px solid rgba(255, 255, 255, 0.25);
-    border-radius: 10px;
-    font-size: 14px;
-    font-weight: 700;
-    padding: 10px 20px;
+    border: 1px solid {c['primary']};
+    border-radius: 6px;
+    padding: 6px 16px;
+    font-size: 12.5px;
+    font-weight: 600;
 }}
 QPushButton#primary:hover {{
-    background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
-        stop:0 #1d4ed8, stop:1 #4338ca);
+    background: {c['primary_hover']};
+    border-color: {c['primary_hover']};
 }}
 QPushButton#primary:disabled {{
-    background: #64748b;
-    color: #cbd5e1;
-    border-color: transparent;
+    background: {c['disabled_bg']};
+    color: {c['disabled_text']};
+    border-color: {c['border']};
 }}
 QPushButton#ghost {{
-    background: rgba(255, 255, 255, 0.12);
-    border: 1px solid rgba(255, 255, 255, 0.35);
-    color: #ffffff;
-    border-radius: 9px;
-    padding: 6px 12px;
+    background: {c['surface_2']};
+    color: {c['text_secondary']};
+    border: 1px solid {c['border_strong']};
+    border-radius: 6px;
+    padding: 5px 11px;
     font-size: 12px;
-    font-weight: 700;
+    font-weight: 600;
 }}
 QPushButton#ghost:hover {{
-    background: rgba(255, 255, 255, 0.22);
-    border-color: rgba(255, 255, 255, 0.65);
+    background: {c['surface_3']};
+    color: {c['text']};
+    border-color: {c['primary']};
 }}
 QPushButton#danger {{
-    background: rgba(239, 68, 68, 0.22);
-    border: 1px solid rgba(252, 165, 165, 0.55);
-    color: #fecaca;
-    border-radius: 9px;
-    padding: 6px 12px;
-    font-weight: 700;
+    background: {c['danger_soft']};
+    color: {c['danger']};
+    border: 1px solid {c['danger_border']};
+    border-radius: 6px;
+    padding: 5px 11px;
+    font-size: 12px;
+    font-weight: 600;
 }}
 QPushButton#danger:hover {{
-    background: rgba(239, 68, 68, 0.38);
+    border-color: {c['danger']};
 }}
 QPushButton#success {{
-    background: {c['success']};
+    background: #059669;
     color: #ffffff;
-    border: none;
-    font-weight: 700;
+    border: 1px solid #059669;
+    border-radius: 6px;
+    padding: 5px 12px;
+    font-size: 12px;
+    font-weight: 600;
 }}
 QPushButton#success:hover {{
-    background: #166534;
+    background: #047857;
+    border-color: #047857;
 }}
 QPushButton#success:disabled {{
     background: {c['disabled_bg']};
@@ -370,27 +473,28 @@ QPushButton#success:disabled {{
     border: 1px solid {c['border']};
 }}
 QPushButton#subtle {{
-    background: {c['surface_2']};
+    background: transparent;
     color: {c['text_secondary']};
     border: 1px solid {c['border']};
-    border-radius: 8px;
-    padding: 5px 11px;
+    border-radius: 6px;
+    padding: 5px 10px;
     font-size: 12px;
     font-weight: 600;
 }}
 QPushButton#subtle:hover {{
-    background: {c['primary_soft']};
-    color: {c['primary_soft_text']};
-    border-color: {c['primary']};
+    background: {c['surface_2']};
+    color: {c['text']};
+    border-color: {c['border_strong']};
 }}
 
-/* ---- Inputs ---- */
+/* ---- Inputs & Checkboxes ---- */
 QLineEdit, QComboBox, QDoubleSpinBox, QSpinBox {{
     background: {c['surface_2']};
     color: {c['text']};
     border: 1px solid {c['border_strong']};
-    border-radius: 8px;
-    padding: 5px 10px;
+    border-radius: 6px;
+    padding: 4px 9px;
+    font-size: 12px;
     min-height: 18px;
     selection-background-color: {c['primary']};
     selection-color: #ffffff;
@@ -401,7 +505,12 @@ QLineEdit:focus, QComboBox:focus, QDoubleSpinBox:focus, QSpinBox:focus {{
 }}
 QComboBox::drop-down {{
     border: none;
-    width: 26px;
+    width: 24px;
+}}
+QComboBox::down-arrow {{
+    image: url({icons['chev_down']});
+    width: 11px;
+    height: 11px;
 }}
 QComboBox QAbstractItemView {{
     background: {c['surface']};
@@ -412,24 +521,72 @@ QComboBox QAbstractItemView {{
     outline: none;
     padding: 4px;
 }}
+QSpinBox::up-button, QSpinBox::down-button,
+QDoubleSpinBox::up-button, QDoubleSpinBox::down-button {{
+    background: transparent;
+    border: none;
+    border-left: 1px solid {c['border']};
+    width: 18px;
+}}
+QSpinBox::up-button:hover, QSpinBox::down-button:hover,
+QDoubleSpinBox::up-button:hover, QDoubleSpinBox::down-button:hover {{
+    background: {c['surface_3']};
+}}
+QSpinBox::up-arrow, QDoubleSpinBox::up-arrow {{
+    image: url({icons['chev_up']});
+    width: 9px;
+    height: 9px;
+}}
+QSpinBox::down-arrow, QDoubleSpinBox::down-arrow {{
+    image: url({icons['chev_down']});
+    width: 9px;
+    height: 9px;
+}}
+QCheckBox {{
+    spacing: 7px;
+    font-size: 12px;
+    color: {c['text']};
+}}
+QCheckBox::indicator {{
+    width: 15px;
+    height: 15px;
+    border-radius: 4px;
+    border: 1px solid {c['border_strong']};
+    background: {c['surface_2']};
+}}
+QCheckBox::indicator:hover {{
+    border-color: {c['primary']};
+}}
+QCheckBox::indicator:checked {{
+    background: {c['primary']};
+    border: 1px solid {c['primary']};
+    image: url({icons['check']});
+}}
 
 /* ---- Lists / Tables / Text ---- */
-QListWidget, QTreeWidget, QTableWidget {{
+QListWidget {{
+    background: transparent;
+    color: {c['text']};
+    border: none;
+    padding: 0px;
+    outline: none;
+}}
+QTreeWidget, QTableWidget {{
     background: {c['surface_2']};
     color: {c['text']};
     border: 1px solid {c['border']};
-    border-radius: 10px;
-    padding: 6px;
+    border-radius: 6px;
+    padding: 4px;
     outline: none;
 }}
 QListWidget::item {{
-    background: {c['surface']};
+    background: {c['row_bg']};
     color: {c['text']};
     border: 1px solid {c['border']};
-    border-radius: 10px;
-    margin: 3px 2px;
-    padding: 2px;
-    min-height: 54px;
+    border-radius: 6px;
+    margin: 2px 0px;
+    padding: 1px;
+    min-height: 46px;
 }}
 QListWidget::item:selected {{
     background: {c['row_selected']};
@@ -447,7 +604,7 @@ QPlainTextEdit, QTextEdit {{
     background: {c['surface_2']};
     color: {c['text']};
     border: 1px solid {c['border']};
-    border-radius: 10px;
+    border-radius: 6px;
     font-family: "Cascadia Mono", "Consolas", "Courier New", monospace;
     font-size: 12px;
     padding: 10px;
@@ -456,17 +613,17 @@ QPlainTextEdit#logConsole {{
     background: {c['log_bg']};
     color: {c['log_text']};
     border: 1px solid {c['log_border']};
-    border-radius: 10px;
+    border-radius: 6px;
     font-family: "Cascadia Mono", "Consolas", "Courier New", monospace;
     font-size: 12px;
-    padding: 12px;
+    padding: 10px;
 }}
 QHeaderView::section {{
     background: {c['surface_3']};
     color: {c['text_secondary']};
     font-weight: 700;
-    font-size: 12px;
-    padding: 8px 10px;
+    font-size: 11.5px;
+    padding: 7px 10px;
     border: none;
     border-bottom: 1px solid {c['border_strong']};
     border-right: 1px solid {c['border']};
@@ -474,51 +631,47 @@ QHeaderView::section {{
 
 /* ---- Tabs ---- */
 QTabWidget::pane {{
-    border: 1px solid {c['border']};
-    border-radius: 12px;
-    background: {c['surface']};
+    border: none;
+    border-top: 1px solid {c['border']};
+    background: transparent;
     top: -1px;
 }}
 QTabBar::tab {{
     background: transparent;
     color: {c['text_muted']};
-    padding: 10px 18px;
+    border: none;
+    border-bottom: 2px solid transparent;
+    padding: 8px 14px;
     margin-right: 4px;
-    border-top-left-radius: 9px;
-    border-top-right-radius: 9px;
-    font-weight: 700;
-    font-size: 13px;
+    font-weight: 600;
+    font-size: 12.5px;
 }}
 QTabBar::tab:selected {{
-    color: {c['primary']};
-    background: {c['surface']};
-    border: 1px solid {c['border']};
+    color: {c['text']};
     border-bottom: 2px solid {c['primary']};
 }}
 QTabBar::tab:hover:!selected {{
-    color: {c['text']};
-    background: {c['surface_2']};
+    color: {c['text_secondary']};
 }}
 
 /* ---- Progress / Status / Menus ---- */
 QProgressBar {{
     border: none;
-    border-radius: 5px;
+    border-radius: 3px;
     background: {c['border']};
-    height: 8px;
+    height: 6px;
     text-align: center;
     color: transparent;
 }}
 QProgressBar::chunk {{
-    border-radius: 5px;
-    background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
-        stop:0 {c['primary']}, stop:0.5 #6366f1, stop:1 #0ea5e9);
+    border-radius: 3px;
+    background: {c['primary']};
 }}
 QStatusBar {{
     background: {c['surface']};
     color: {c['text_muted']};
     border-top: 1px solid {c['border']};
-    font-size: 12px;
+    font-size: 11.5px;
 }}
 QMenuBar {{
     background: {c['surface']};
@@ -528,7 +681,7 @@ QMenuBar {{
 }}
 QMenuBar::item {{
     padding: 4px 10px;
-    border-radius: 6px;
+    border-radius: 4px;
 }}
 QMenuBar::item:selected {{
     background: {c['primary_soft']};
@@ -538,12 +691,12 @@ QMenu {{
     background: {c['surface']};
     color: {c['text']};
     border: 1px solid {c['border_strong']};
-    border-radius: 8px;
+    border-radius: 6px;
     padding: 4px;
 }}
 QMenu::item {{
-    padding: 6px 22px 6px 12px;
-    border-radius: 5px;
+    padding: 5px 20px 5px 10px;
+    border-radius: 4px;
 }}
 QMenu::item:selected {{
     background: {c['primary_soft']};
@@ -551,8 +704,8 @@ QMenu::item:selected {{
 }}
 QScrollBar:vertical {{
     background: transparent;
-    width: 10px;
-    margin: 4px 2px;
+    width: 9px;
+    margin: 2px 1px;
 }}
 QScrollBar::handle:vertical {{
     background: {c['scrollbar']};
@@ -592,7 +745,7 @@ def apply_app_theme(app: QApplication, theme: str = "light") -> str:
     pal.setColor(QPalette.ColorRole.AlternateBase, QColor(c["surface_2"]))
     pal.setColor(QPalette.ColorRole.Text, QColor(c["text"]))
     pal.setColor(QPalette.ColorRole.PlaceholderText, QColor(c["text_muted"]))
-    pal.setColor(QPalette.ColorRole.Button, QColor(c["surface"]))
+    pal.setColor(QPalette.ColorRole.Button, QColor(c["surface_2"]))
     pal.setColor(QPalette.ColorRole.ButtonText, QColor(c["text"]))
     pal.setColor(QPalette.ColorRole.Highlight, QColor(c["primary"]))
     pal.setColor(QPalette.ColorRole.HighlightedText, QColor("#ffffff"))
@@ -618,7 +771,7 @@ def apply_app_theme(app: QApplication, theme: str = "light") -> str:
 
     font = QFont()
     font.setFamilies(["Segoe UI Variable Text", "Segoe UI", "Inter", "Arial"])
-    font.setPointSize(10)
+    font.setPointSizeF(9.5)
     app.setFont(font)
 
     app.setStyleSheet(DARK_STYLESHEET if c["name"] == "dark" else LIGHT_STYLESHEET)
@@ -626,12 +779,5 @@ def apply_app_theme(app: QApplication, theme: str = "light") -> str:
 
 
 def apply_card_shadow(widget: QWidget, theme: str = "light") -> None:
-    """Attach a soft studio elevation shadow to a card frame."""
-    shadow = QGraphicsDropShadowEffect(widget)
-    shadow.setBlurRadius(24)
-    shadow.setOffset(0, 4)
-    if str(theme).lower().strip() == "dark":
-        shadow.setColor(QColor(0, 0, 0, 110))
-    else:
-        shadow.setColor(QColor(15, 23, 42, 22))
-    widget.setGraphicsEffect(shadow)
+    """Clear elevation shadows so panels rely cleanly on crisp 1px borders."""
+    widget.setGraphicsEffect(None)
