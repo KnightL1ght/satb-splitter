@@ -13,7 +13,7 @@ Desktop application and CLI toolkit that splits choral & piano-vocal **PDFs**, *
 
 If you just want to run **SATB Splitter** on Windows without installing Python, Java, or Audiveris:
 
-1. Go to the [**Releases**](../../releases) page and download **`SATB-Splitter-v0.3.0-Windows-Portable.zip`**.
+1. Go to the [**Releases**](../../releases) page and download **`SATB-Splitter-v0.4.0-Windows-Portable.zip`**.
 2. Extract the ZIP folder anywhere (Desktop, Documents, or a USB drive).
 3. Double-click **`SATB Splitter.exe`**.
 
@@ -27,7 +27,7 @@ Everything needed for offline PDF Optical Music Recognition (bundled **Audiveris
 
 1. **Add scores**
    - Drag and drop `.pdf`, sheet music images/photos (`.png`, `.jpg`, `.jpeg`, `.webp`, `.bmp`, `.tif`, `.tiff`), or `.musicxml` / `.mxl` / `.xml` files (or entire folders) onto the drop zone — or onto **`SATB Splitter.exe`** directly.
-   - Or click **＋ Add files…** / **Add Folder…** in the **Input Scores** panel, and use **▲ / ▼** to reorder multi-page sheet photos.
+   - Or click **Add Files…** / **Add Folder…** in the **Input Scores** panel, and use **↑ / ↓** to reorder multi-page sheet photos.
 2. **Choose Pipeline Options**
    - **Output**: Pick where the generated voice files should be saved.
    - **Layout**: Leave on **Auto-detect layout** (automatically detects 2-staff `SA / TB`, 3-staff `SA / T / B`, 4-staff open score, and single-staff scores), or choose a specific layout template.
@@ -37,9 +37,9 @@ Everything needed for offline PDF Optical Music Recognition (bundled **Audiveris
    - **Photo enhance & Combine**: **Auto** automatically detects camera photos and scanned/mobile-scanner PDFs, respects smartphone EXIF orientation, performs trapezoid perspective rectification, removes dark table borders, flattens uneven lighting/shadows, stretches contrast cleanly, deskews tilted pages, and normalizes resolution to ~300 DPI. Check **Combine queued images into 1 multi-page score** to merge ordered sheet photos into a single score.
    - **Audiveris**: Automatically detected (uses the bundled `Audiveris\Audiveris.exe` in portable builds).
 3. **Convert & Split**
-   - Click **▶ Convert & Split**. Progress and per-page OMR status appear in the **Log** tab.
+   - Click **Convert & Split**. Progress and per-page OMR status appear in the **Log** tab.
 4. **Inspect Output Files**
-   - Open the **Voice files** tab to see all generated files in `<output>\voices\`:
+   - Open the **Voice Files** tab to see all generated files in `<output>\voices\`:
      - `<name>_Soprano.musicxml`
      - `<name>_Alto.musicxml`
      - `<name>_Tenor.musicxml`
@@ -48,13 +48,13 @@ Everything needed for offline PDF Optical Music Recognition (bundled **Audiveris
      - `<name>_SATB.mscz` (written automatically if MuseScore 4 is installed; never overwrites `.mscz` files you edited manually)
      - `<name>_REVIEW.txt` (summary + per-bar review flags table)
 5. **Resolve 3-Note Chords & Review Flags**
-   - Click **Resolve 3-note chords…** to inspect or override how ambiguous 3-note chords were assigned between Soprano/Alto or Tenor/Bass, then re-export immediately.
+   - Click **Resolve 3-Note Chords…** to inspect or override how ambiguous 3-note chords were assigned between Soprano/Alto or Tenor/Bass, then re-export immediately.
    - Check the **Review Flags** tab (with live keyword filtering) for any OMR warnings, clipped notes, meter mismatches, voice crossings, or multi-bar rest checks.
 6. **Export Grand Piano MP3 Practice Tracks (MP3 Audio Tab)**
    - Open the **MP3 Audio** tab (requires MuseScore 4) to render **Soprano**, **Alto**, **Tenor**, **Bass**, or **SATB (Full)** parts as `*_Piano.mp3` rehearsal tracks using **Acoustic Grand Piano** (MIDI program 1), with selectable bitrate (`128` / `192` / `320 kbps`) and optional tempo override (`BPM`).
    - Use **Load Voices…** anytime to render existing `.musicxml` / `.mxl` / `.xml` voice files without re-running OMR.
 7. **Open in MuseScore 4**
-   - Click **Open SATB in MuseScore** or double-click any individual part in **Voice files** to open it in MuseScore 4 for playback, audio export, or final engraving tweaks.
+   - Click **Open SATB in MuseScore** or double-click any individual part in **Voice Files** to open it in MuseScore 4 for playback, audio export, or final engraving tweaks.
 
 ---
 
@@ -134,7 +134,7 @@ If you have PyInstaller installed in `.venv` and a local Audiveris distribution 
 .\scripts\build_portable_zip.ps1
 ```
 
-This builds `release_staging\SATB-Splitter-v0.3.0-Windows-Portable.zip` along with the Audiveris patch source archive `release_staging\audiveris-dev3l-source-patches.zip`.
+This builds `release_staging\SATB-Splitter-v0.4.0-Windows-Portable.zip` along with the Audiveris patch source archive `release_staging\audiveris-dev3l-source-patches.zip`.
 
 ---
 

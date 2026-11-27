@@ -1,6 +1,6 @@
 ﻿# Build the all-in-one portable ("travelling software") Windows ZIP release
 param(
-    [string]$Version = "0.3.0",
+    [string]$Version = "0.4.0",
     [string]$AudiverisDir = (Join-Path $env:USERPROFILE "Audiveris-local-dev3l"),
     [string]$TessdataDir = (Join-Path $env:APPDATA "AudiverisLtd\audiveris\config\tessdata"),
     [string]$AudiverisSourceRepo = (Join-Path $env:USERPROFILE "Audiveris\audiveris-dev")
